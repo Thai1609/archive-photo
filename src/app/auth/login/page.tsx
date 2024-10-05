@@ -1,20 +1,21 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import "react-toastify/dist/ReactToastify.css";
-import Link from "next/link";
-
 import { deleteCookie, setCookie } from "cookies-next";
+import Link from "next/link";
 import axios from "axios";
+
+import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
 
 export default function LoginPage(req: any, res: any) {
   deleteCookie("token");
 
   const router = useRouter();
-  const url = "http://localhost:8080/auth/login";
+  const url = "http://localhost:8080/api/auth/login";
   const urlLoginWithGoogle =
     "http://localhost:8080/oauth2/authorization/google";
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -27,6 +28,24 @@ export default function LoginPage(req: any, res: any) {
       [name]: value,
     });
   };
+  const handleLoginWithGoogle = async () => {
+    try {
+      const response = await axios.post(urlLoginWithGoogle, {});
+
+      if (response.status === 200) {
+        setCookie("token", response.data.result.token, {
+          req,
+          res,
+          maxAge: 60 * 60 * 24,
+        });
+        router.push("/photos");
+      } else {
+        console.error("Login fail");
+      }
+    } catch (error) {
+      console.error(" login error:", error);
+    }
+  };
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault(); // Prevent the default form submission
@@ -35,217 +54,237 @@ export default function LoginPage(req: any, res: any) {
         headers: {
           "Content-Type": "application/json",
         },
+        withCredentials: true,
       });
 
-      setCookie("token", response.data.result.token, {
-        req,
-        res,
-        maxAge: 60 * 60 * 24,
-      });
-      toast.success("Login success!");
-      router.push("/photos");
-    } catch (err) {
-      const error = err as any;
-      // console.error('Login failed:', error.response ? error.response.data : error.message); // Xử lý khi đăng nhập thất bại
-      toast.error(error.response.data.message);
+      console.log("status: ", response.status);
+
+      if (response.data.result.authenticated) {
+        setCookie("token", response.data.result.token, {
+          req,
+          res,
+          maxAge: 60 * 60 * 24,
+        });
+        router.push("/photos");
+      } else if (response.status === 400) {
+        toast.error(JSON.stringify(response.data.message));
+      } else {
+        console.error("Login fail");
+      }
+    } catch (error) {
+      console.error(" login error:", error);
+      toast.error(JSON.stringify(error.response.data.message));
     }
   };
 
-  const handleLoginWithGoogle = async () => {
-    try {
-      const response = await axios.post(urlLoginWithGoogle, {});
-      setCookie("token", response.data.result.token, {
-        req,
-        res,
-        maxAge: 60 * 60 * 24,
-      });
-      router.push("/my-profile");
-    } catch (err) {
-      const error = err as any;
-      // console.error('Login failed:', error.response ? error.response.data : error.message); // Xử lý khi đăng nhập thất bại
-      toast.error(error.response.data.message);
-    }
-  };
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <section className="h-screen">
-        <div className="h-full">
-          {/* Left column container with background*/}
-          <div className="flex h-full flex-wrap items-center justify-center lg:justify-between">
-            <div className="shrink-1 mb-12 grow-0 basis-auto md:mb-0 md:w-9/12 md:shrink-0 lg:w-6/12 xl:w-6/12">
-              <img
-                src="https://tecdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
-                className="w-full"
-                alt="Sample image"
-              />
-            </div>
-            {/* Right column container */}
-            <div className="mb-12 md:mb-0 md:w-8/12 lg:w-5/12 xl:w-5/12">
-              {/*Sign in section*/}
-              <div className="flex flex-row items-center justify-center lg:justify-start">
-                <p className="mb-0 me-4 text-lg">Sign in with</p>
-                {/* Facebook */}
-                <button className="flex items-center bg-white border border-gray-300 rounded-lg shadow-md max-w-xs px-6 py-2 text-sm font-medium text-gray-800 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                  <svg
-                    className="h-6 w-6 mr-2"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 48 48"
-                    version="1.1"
-                  >
-                    <g
-                      id="Icons"
-                      stroke="none"
-                      stroke-width="1"
-                      fill="none"
-                      fill-rule="evenodd"
-                    >
-                      <g
-                        id="Color-"
-                        transform="translate(-200.000000, -160.000000)"
-                        fill="#4460A0"
-                      >
-                        <path
-                          d="M225.638355,208 L202.649232,208 C201.185673,208 200,206.813592 200,205.350603 L200,162.649211 C200,161.18585 201.185859,160 202.649232,160 L245.350955,160 C246.813955,160 248,161.18585 248,162.649211 L248,205.350603 C248,206.813778 246.813769,208 245.350955,208 L233.119305,208 L233.119305,189.411755 L239.358521,189.411755 L240.292755,182.167586 L233.119305,182.167586 L233.119305,177.542641 C233.119305,175.445287 233.701712,174.01601 236.70929,174.01601 L240.545311,174.014333 L240.545311,167.535091 C239.881886,167.446808 237.604784,167.24957 234.955552,167.24957 C229.424834,167.24957 225.638355,170.625526 225.638355,176.825209 L225.638355,182.167586 L219.383122,182.167586 L219.383122,189.411755 L225.638355,189.411755 L225.638355,208 L225.638355,208 Z"
-                          id="Facebook"
-                        ></path>
-                      </g>
-                    </g>
-                  </svg>
-
-                  <span>Continue with Facebook</span>
-                </button>
-                {/* Google */}
-                <button
-                  onClick={handleLoginWithGoogle}
-                  className="flex items-center bg-white border border-gray-300 rounded-lg shadow-md max-w-xs px-6 py-2 text-sm font-medium text-gray-800 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+    <div className="font-[sans-serif]">
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <div className="grid md:grid-cols-2 items-center gap-4 max-md:gap-8 max-w-6xl max-md:max-w-lg w-full p-4 m-4 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] rounded-md">
+          <div className="md:max-w-md w-full px-4 py-4">
+            <div className="mb-12">
+              <h3 className="text-gray-800 text-3xl font-extrabold">Sign in</h3>
+              <p className="text-sm mt-4 text-gray-800">
+                Don't have an account
+                <a
+                  href="/auth/register"
+                  className="text-blue-600 font-semibold hover:underline ml-1 whitespace-nowrap"
                 >
-                  <svg
-                    className="h-6 w-6 mr-2"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="-0.5 0 48 48"
-                    version="1.1"
-                  >
-                    <g
-                      id="Icons"
-                      stroke="none"
-                      stroke-width="1"
-                      fill="none"
-                      fill-rule="evenodd"
-                    >
-                      <g
-                        id="Color-"
-                        transform="translate(-401.000000, -860.000000)"
-                      >
-                        <g
-                          id="Google"
-                          transform="translate(401.000000, 860.000000)"
-                        >
-                          <path
-                            d="M9.82727273,24 C9.82727273,22.4757333 10.0804318,21.0144 10.5322727,19.6437333 L2.62345455,13.6042667 C1.08206818,16.7338667 0.213636364,20.2602667 0.213636364,24 C0.213636364,27.7365333 1.081,31.2608 2.62025,34.3882667 L10.5247955,28.3370667 C10.0772273,26.9728 9.82727273,25.5168 9.82727273,24"
-                            id="Fill-1"
-                            fill="#FBBC05"
-                          ></path>
-                          <path
-                            d="M23.7136364,10.1333333 C27.025,10.1333333 30.0159091,11.3066667 32.3659091,13.2266667 L39.2022727,6.4 C35.0363636,2.77333333 29.6954545,0.533333333 23.7136364,0.533333333 C14.4268636,0.533333333 6.44540909,5.84426667 2.62345455,13.6042667 L10.5322727,19.6437333 C12.3545909,14.112 17.5491591,10.1333333 23.7136364,10.1333333"
-                            id="Fill-2"
-                            fill="#EB4335"
-                          ></path>
-                          <path
-                            d="M23.7136364,37.8666667 C17.5491591,37.8666667 12.3545909,33.888 10.5322727,28.3562667 L2.62345455,34.3946667 C6.44540909,42.1557333 14.4268636,47.4666667 23.7136364,47.4666667 C29.4455,47.4666667 34.9177955,45.4314667 39.0249545,41.6181333 L31.5177727,35.8144 C29.3995682,37.1488 26.7323182,37.8666667 23.7136364,37.8666667"
-                            id="Fill-3"
-                            fill="#34A853"
-                          ></path>
-                          <path
-                            d="M46.1454545,24 C46.1454545,22.6133333 45.9318182,21.12 45.6113636,19.7333333 L23.7136364,19.7333333 L23.7136364,28.8 L36.3181818,28.8 C35.6879545,31.8912 33.9724545,34.2677333 31.5177727,35.8144 L39.0249545,41.6181333 C43.3393409,37.6138667 46.1454545,31.6490667 46.1454545,24"
-                            id="Fill-4"
-                            fill="#4285F4"
-                          ></path>
-                        </g>
-                      </g>
-                    </g>
-                  </svg>
-                  <span>Continue with Google</span>
-                </button>
-              </div>
-              <form onSubmit={handleSubmit}>
-                {/* Separator between social media sign in and email/password sign in */}
-                <div className="my-4 flex items-center before:mt-0.5 before:flex-1 before:border-t before:border-neutral-300 after:mt-0.5 after:flex-1 after:border-t after:border-neutral-300 dark:before:border-neutral-500 dark:after:border-neutral-500">
-                  <p className="mx-4 mb-0 text-center font-semibold dark:text-white">
-                    Or
-                  </p>
-                </div>
-                {/* Email input */}
-                <div className="relative mb-6" data-twe-input-wrapper-init>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                    Email address
-                  </label>
+                  Register here
+                </a>
+              </p>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div>
+                <label className="text-gray-800 text-xs block mb-2">
+                  Email
+                </label>
+                <div className="relative flex items-center">
                   <input
-                    type="email"
                     name="email"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    type="email"
                     value={formData.email}
                     onChange={handleChange}
                     required
+                    className="w-full text-gray-800 text-sm border-b border-gray-300 focus:border-blue-600 px-2 py-3 outline-none"
+                    placeholder="Enter email"
                   />
+
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="#bbb"
+                    stroke="#bbb"
+                    className="w-[18px] h-[18px] absolute right-2"
+                    viewBox="0 0 682.667 682.667"
+                  >
+                    <defs>
+                      <clipPath id="a" clipPathUnits="userSpaceOnUse">
+                        <path d="M0 512h512V0H0Z" data-original="#000000" />
+                      </clipPath>
+                    </defs>
+                    <g
+                      clipPath="url(#a)"
+                      transform="matrix(1.33 0 0 -1.33 0 682.667)"
+                    >
+                      <path
+                        fill="none"
+                        strokeMiterlimit={10}
+                        strokeWidth={40}
+                        d="M452 444H60c-22.091 0-40-17.909-40-40v-39.446l212.127-157.782c14.17-10.54 33.576-10.54 47.746 0L492 364.554V404c0 22.091-17.909 40-40 40Z"
+                        data-original="#000000"
+                      />
+                      <path
+                        d="M472 274.9V107.999c0-11.027-8.972-20-20-20H60c-11.028 0-20 8.973-20 20V274.9L0 304.652V107.999c0-33.084 26.916-60 60-60h392c33.084 0 60 26.916 60 60v196.653Z"
+                        data-original="#000000"
+                      />
+                    </g>
+                  </svg>
                 </div>
-                {/* Password input */}
-                <div className="relative mb-6" data-twe-input-wrapper-init>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                    Password
-                  </label>
+              </div>
+              <div className="mt-8">
+                <label className="text-gray-800 text-xs block mb-2">
+                  Password
+                </label>
+                <div className="relative flex items-center">
                   <input
-                    type="password"
                     name="password"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    type="password"
                     value={formData.password}
                     onChange={handleChange}
                     required
+                    className="w-full text-gray-800 text-sm border-b border-gray-300 focus:border-blue-600 px-2 py-3 outline-none"
+                    placeholder="Enter password"
                   />
-                </div>
-                <div className="mb-6 flex items-center justify-between">
-                  {/* Remember me checkbox */}
-                  <div className="mb-[0.125rem] block min-h-[1.5rem] ps-[1.5rem]">
-                    <input
-                      className="relative float-left -ms-[1.5rem] me-[6px] mt-[0.15rem] h-[1.125rem] w-[1.125rem] appearance-none rounded-[0.25rem] border-[0.125rem] border-solid border-secondary-500 outline-none before:pointer-events-none before:absolute before:h-[0.875rem] before:w-[0.875rem] before:scale-0 before:rounded-full before:bg-transparent before:opacity-0 before:shadow-checkbox before:shadow-transparent before:content-[''] checked:border-primary checked:bg-primary checked:before:opacity-[0.16] checked:after:absolute checked:after:-mt-px checked:after:ms-[0.25rem] checked:after:block checked:after:h-[0.8125rem] checked:after:w-[0.375rem] checked:after:rotate-45 checked:after:border-[0.125rem] checked:after:border-l-0 checked:after:border-t-0 checked:after:border-solid checked:after:border-white checked:after:bg-transparent checked:after:content-[''] hover:cursor-pointer hover:before:opacity-[0.04] hover:before:shadow-black/60 focus:shadow-none focus:transition-[border-color_0.2s] focus:before:scale-100 focus:before:opacity-[0.12] focus:before:shadow-black/60 focus:before:transition-[box-shadow_0.2s,transform_0.2s] focus:after:absolute focus:after:z-[1] focus:after:block focus:after:h-[0.875rem] focus:after:w-[0.875rem] focus:after:rounded-[0.125rem] focus:after:content-[''] checked:focus:before:scale-100 checked:focus:before:shadow-checkbox checked:focus:before:transition-[box-shadow_0.2s,transform_0.2s] checked:focus:after:-mt-px checked:focus:after:ms-[0.25rem] checked:focus:after:h-[0.8125rem] checked:focus:after:w-[0.375rem] checked:focus:after:rotate-45 checked:focus:after:rounded-none checked:focus:after:border-[0.125rem] checked:focus:after:border-l-0 checked:focus:after:border-t-0 checked:focus:after:border-solid checked:focus:after:border-white checked:focus:after:bg-transparent rtl:float-right dark:border-neutral-400 dark:checked:border-primary dark:checked:bg-primary"
-                      type="checkbox"
-                      id="exampleCheck2"
-                    />
-                    <label
-                      className="inline-block ps-[0.15rem] hover:cursor-pointer"
-                      htmlFor="exampleCheck2"
-                    >
-                      Remember me
-                    </label>
-                  </div>
-                  {/*Forgot password link*/}
-                  <a href="#!">Forgot password?</a>
-                </div>
-                {/* Login button */}
-                <div className="text-center lg:text-left">
-                  <button
-                    type="submit"
-                    className="inline-block w-full rounded bg-primary px-7 pb-2 pt-3 text-sm font-medium uppercase leading-normal text-white shadow-primary-3 transition duration-150 ease-in-out hover:bg-primary-accent-300 hover:shadow-primary-2 focus:bg-primary-accent-300 focus:shadow-primary-2 focus:outline-none focus:ring-0 active:bg-primary-600 active:shadow-primary-2 dark:shadow-black/30 dark:hover:shadow-dark-strong dark:focus:shadow-dark-strong dark:active:shadow-dark-strong"
-                    data-twe-ripple-init
-                    data-twe-ripple-color="light"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="#bbb"
+                    stroke="#bbb"
+                    className="w-[18px] h-[18px] absolute right-2 cursor-pointer"
+                    viewBox="0 0 128 128"
                   >
-                    Login
-                  </button>
-                  {/* Register link */}
-                  <p className="mb-0 mt-2 pt-1 text-sm font-semibold">
-                    Don&apos;t have an account?
-                    <Link
-                      href="/auth/register"
-                      className="text-danger transition duration-150 ease-in-out hover:text-danger-600 focus:text-danger-600 active:text-danger-700"
-                    >
-                      Register
-                    </Link>
-                  </p>
+                    <path
+                      d="M64 104C22.127 104 1.367 67.496.504 65.943a4 4 0 0 1 0-3.887C1.367 60.504 22.127 24 64 24s62.633 36.504 63.496 38.057a4 4 0 0 1 0 3.887C126.633 67.496 105.873 104 64 104zM8.707 63.994C13.465 71.205 32.146 96 64 96c31.955 0 50.553-24.775 55.293-31.994C114.535 56.795 95.854 32 64 32 32.045 32 13.447 56.775 8.707 63.994zM64 88c-13.234 0-24-10.766-24-24s10.766-24 24-24 24 10.766 24 24-10.766 24-24 24zm0-40c-8.822 0-16 7.178-16 16s7.178 16 16 16 16-7.178 16-16-7.178-16-16-16z"
+                      data-original="#000000"
+                    />
+                  </svg>
                 </div>
-              </form>
-            </div>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-4 mt-6">
+                <div className="flex items-center">
+                  <input
+                    id="remember-me"
+                    name="remember-me"
+                    type="checkbox"
+                    className="h-4 w-4 shrink-0 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label
+                    htmlFor="remember-me"
+                    className="ml-3 block text-sm text-gray-800"
+                  >
+                    Remember me
+                  </label>
+                </div>
+                <div>
+                  <a
+                    href=" "
+                    className="text-blue-600 font-semibold text-sm hover:underline"
+                  >
+                    Forgot Password?
+                  </a>
+                </div>
+              </div>
+              <div className="mt-12">
+                <button
+                  type="submit"
+                  className="w-full shadow-xl py-2.5 px-4 text-sm tracking-wide rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
+                >
+                  Sign in
+                </button>
+              </div>
+            </form>
+            <form>
+              <div className="space-x-6 flex justify-center mt-6">
+                <button
+                  type="button"
+                  className="border-none outline-none"
+                  onClick={handleLoginWithGoogle}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="32px"
+                    className="inline"
+                    viewBox="0 0 512 512"
+                  >
+                    <path
+                      fill="#fbbd00"
+                      d="M120 256c0-25.367 6.989-49.13 19.131-69.477v-86.308H52.823C18.568 144.703 0 198.922 0 256s18.568 111.297 52.823 155.785h86.308v-86.308C126.989 305.13 120 281.367 120 256z"
+                      data-original="#fbbd00"
+                    />
+                    <path
+                      fill="#0f9d58"
+                      d="m256 392-60 60 60 60c57.079 0 111.297-18.568 155.785-52.823v-86.216h-86.216C305.044 385.147 281.181 392 256 392z"
+                      data-original="#0f9d58"
+                    />
+                    <path
+                      fill="#31aa52"
+                      d="m139.131 325.477-86.308 86.308a260.085 260.085 0 0 0 22.158 25.235C123.333 485.371 187.62 512 256 512V392c-49.624 0-93.117-26.72-116.869-66.523z"
+                      data-original="#31aa52"
+                    />
+                    <path
+                      fill="#3c79e6"
+                      d="M512 256a258.24 258.24 0 0 0-4.192-46.377l-2.251-12.299H256v120h121.452a135.385 135.385 0 0 1-51.884 55.638l86.216 86.216a260.085 260.085 0 0 0 25.235-22.158C485.371 388.667 512 324.38 512 256z"
+                      data-original="#3c79e6"
+                    />
+                    <path
+                      fill="#cf2d48"
+                      d="m352.167 159.833 10.606 10.606 84.853-84.852-10.606-10.606C388.668 26.629 324.381 0 256 0l-60 60 60 60c36.326 0 70.479 14.146 96.167 39.833z"
+                      data-original="#cf2d48"
+                    />
+                    <path
+                      fill="#eb4132"
+                      d="M256 120V0C187.62 0 123.333 26.629 74.98 74.98a259.849 259.849 0 0 0-22.158 25.235l86.308 86.308C162.883 146.72 206.376 120 256 120z"
+                      data-original="#eb4132"
+                    />
+                  </svg>
+                </button>
+                <button type="button" className="border-none outline-none">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="32px"
+                    fill="#000"
+                    viewBox="0 0 22.773 22.773"
+                  >
+                    <path
+                      d="M15.769 0h.162c.13 1.606-.483 2.806-1.228 3.675-.731.863-1.732 1.7-3.351 1.573-.108-1.583.506-2.694 1.25-3.561C13.292.879 14.557.16 15.769 0zm4.901 16.716v.045c-.455 1.378-1.104 2.559-1.896 3.655-.723.995-1.609 2.334-3.191 2.334-1.367 0-2.275-.879-3.676-.903-1.482-.024-2.297.735-3.652.926h-.462c-.995-.144-1.798-.932-2.383-1.642-1.725-2.098-3.058-4.808-3.306-8.276v-1.019c.105-2.482 1.311-4.5 2.914-5.478.846-.52 2.009-.963 3.304-.765.555.086 1.122.276 1.619.464.471.181 1.06.502 1.618.485.378-.011.754-.208 1.135-.347 1.116-.403 2.21-.865 3.652-.648 1.733.262 2.963 1.032 3.723 2.22-1.466.933-2.625 2.339-2.427 4.74.176 2.181 1.444 3.457 3.028 4.209z"
+                      data-original="#000000"
+                    />
+                  </svg>
+                </button>
+                <button type="button" className="border-none outline-none">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="32px"
+                    fill="#007bff"
+                    viewBox="0 0 167.657 167.657"
+                  >
+                    <path
+                      d="M83.829.349C37.532.349 0 37.881 0 84.178c0 41.523 30.222 75.911 69.848 82.57v-65.081H49.626v-23.42h20.222V60.978c0-20.037 12.238-30.956 30.115-30.956 8.562 0 15.92.638 18.056.919v20.944l-12.399.006c-9.72 0-11.594 4.618-11.594 11.397v14.947h23.193l-3.025 23.42H94.026v65.653c41.476-5.048 73.631-40.312 73.631-83.154 0-46.273-37.532-83.805-83.828-83.805z"
+                      data-original="#010002"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </form>
+          </div>
+          <div className="md:h-full bg-[#000842] rounded-xl lg:p-12 p-8">
+            <img
+              src="https://readymadeui.com/signin-image.webp"
+              className="w-full h-full object-contain"
+              alt="login-image"
+            />
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

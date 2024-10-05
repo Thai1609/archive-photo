@@ -2,12 +2,9 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function Navbar() {
-  
   return (
     <>
-      <nav className="fixed top-0 z-50 w-full bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700 ">
-        
-
+      <nav className="position: fixed top-0 z-50 w-full bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700 ">
         <div className="bg-black-600 text-center items-center justify-center py-4 md:py-4 flex-wrap ">
           <button
             type="button"
