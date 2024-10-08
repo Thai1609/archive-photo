@@ -1,51 +1,55 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
-import React, { FormEvent, useState } from "react";
+import React, { useState } from "react";
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+import ModalCreateUser from "@/app/components/ModalCreateUser";
 
 export default function RegisterPage() {
-  const router = useRouter();
-  const [errors, setErrors] = useState({});
-  const [isFormValid, setIsFormValid] = useState(false);
+  // const router = useRouter();
+  const email = useState("");
+  //Open modal confirm email
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  // const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
-    const formData = new FormData(event.currentTarget);
-    const data = Object.fromEntries(formData.entries());
-    let errors = {};
+  const url = "http://localhost:8080/api/auth/signup";
 
-    // if (data.password != data.rpassword) {
-    //   errors.password = "Passwords do not match!";
-    // }
-    setErrors(errors);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-    setIsFormValid(Object.keys(errors).length === 0);
+  const handleChange = (e: { target: { name: any; value: any } }) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
 
-    if (isFormValid) {
-      fetch("http://localhost:8080/api/auth/signup", {
-        method: "POST",
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
+    e.preventDefault(); // Prevent the default form submission
+    console.log("formData: ", formData);
+    try {
+      const response = await axios.post(url, formData, {
         headers: {
-          Accept: "application/json, text/plain, */*",
-          "Access-Control-Allow-Origin": "*",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          // console.log("show: " + JSON.stringify(data.result.token));
-          if (data.code == 0) {
-            toast.success("Register success.....!");
-            router.push("/login");
-          } else {
-            toast.error(JSON.stringify(data.message));
-          }
-        });
+        withCredentials: true,
+      });
+      const email = response.data;
+      console.log("email: ", response.data);
+      setIsModalOpen(true);
+      // router.push(`/auth/confirm?email=${encodeURIComponent(email)}`);
+    } catch (error) {
+      console.error("Register error:", error);
+      toast.error(JSON.stringify(error.response.data.message));
     }
-  }
+  };
   return (
     <div className="font-[sans-serif] bg-white md:h-screen">
       <div className="grid md:grid-cols-2 items-center gap-8 h-full">
@@ -57,7 +61,7 @@ export default function RegisterPage() {
           />
         </div>
         <div className="flex items-center md:p-8 p-6 bg-[#0C172C] h-full lg:w-11/12 lg:ml-auto">
-          <form className="max-w-lg w-full mx-auto" onSubmit={onSubmit}>
+          <form className="max-w-lg w-full mx-auto" onSubmit={handleSubmit}>
             <div className="mb-12">
               <h3 className="text-3xl font-bold text-yellow-400">
                 Create an account
@@ -69,7 +73,9 @@ export default function RegisterPage() {
               <div className="relative flex items-center">
                 <input
                   name="email"
-                  type="text"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   required
                   className="w-full bg-transparent text-sm text-white border-b border-gray-300 focus:border-yellow-400 px-2 py-3 outline-none"
                   placeholder="Enter email"
@@ -111,6 +117,8 @@ export default function RegisterPage() {
                 <input
                   name="password"
                   type="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   required
                   className="w-full bg-transparent text-sm text-white border-b border-gray-300 focus:border-yellow-400 px-2 py-3 outline-none"
                   placeholder="Enter password"
@@ -152,7 +160,7 @@ export default function RegisterPage() {
             <div className="mt-12">
               <button
                 type="submit"
-                className="w-max shadow-xl py-3 px-6 text-sm text-gray-800 font-semibold rounded-md bg-transparent bg-yellow-400 hover:bg-yellow-500 focus:outline-none"
+                 className="w-max shadow-xl py-3 px-6 text-sm text-gray-800 font-semibold rounded-md bg-transparent bg-yellow-400 hover:bg-yellow-500 focus:outline-none"
               >
                 Register
               </button>
@@ -167,96 +175,9 @@ export default function RegisterPage() {
               </p>
             </div>
           </form>
+          <ModalCreateUser isOpen={isModalOpen} onClose={closeModal} email = {email}></ModalCreateUser>
         </div>
       </div>
     </div>
-
-    // <div className="flex items-center justify-center min-h-screen bg-gray-100">
-    //   <section className="h-screen">
-    //     <div className="h-full">
-    //       {/* Left column container with background*/}
-    //       <div className="flex h-full flex-wrap items-center justify-center lg:justify-between">
-    //         <div className="shrink-1 mb-12 grow-0 basis-auto md:mb-0 md:w-9/12 md:shrink-0 lg:w-6/12 xl:w-6/12">
-    //           <img
-    //             src="https://tecdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
-    //             className="w-full"
-    //             alt="Sample image"
-    //           />
-    //         </div>
-    //         {/* Right column container */}
-    //         <div className="mb-12 md:mb-0 md:w-8/12 lg:w-5/12 xl:w-5/12">
-    //           <form onSubmit={onSubmit}>
-    //             {/* Email input */}
-    //             <div className="relative mb-6" data-twe-input-wrapper-init>
-    //               <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-    //                 Email address
-    //               </label>
-    //               <input
-    //                 type="text"
-    //                 id="email"
-    //                 name="email"
-    //                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-    //                 placeholder=" "
-    //                 required
-    //               />
-    //             </div>
-    //             {/* Password input */}
-    //             <div className="relative mb-6" data-twe-input-wrapper-init>
-    //               <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-    //                 Password
-    //               </label>
-    //               <input
-    //                 type="password"
-    //                 id="password"
-    //                 name="password"
-    //                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-    //                 placeholder=" "
-    //                 required
-    //               />
-    //             </div>
-    //             <div className="mb-6 flex items-center justify-between">
-    //               {/* Remember me checkbox */}
-    //               <div className="mb-[0.125rem] block min-h-[1.5rem] ps-[1.5rem]">
-    //                 <input
-    //                   className="relative float-left -ms-[1.5rem] me-[6px] mt-[0.15rem] h-[1.125rem] w-[1.125rem] appearance-none rounded-[0.25rem] border-[0.125rem] border-solid border-secondary-500 outline-none before:pointer-events-none before:absolute before:h-[0.875rem] before:w-[0.875rem] before:scale-0 before:rounded-full before:bg-transparent before:opacity-0 before:shadow-checkbox before:shadow-transparent before:content-[''] checked:border-primary checked:bg-primary checked:before:opacity-[0.16] checked:after:absolute checked:after:-mt-px checked:after:ms-[0.25rem] checked:after:block checked:after:h-[0.8125rem] checked:after:w-[0.375rem] checked:after:rotate-45 checked:after:border-[0.125rem] checked:after:border-l-0 checked:after:border-t-0 checked:after:border-solid checked:after:border-white checked:after:bg-transparent checked:after:content-[''] hover:cursor-pointer hover:before:opacity-[0.04] hover:before:shadow-black/60 focus:shadow-none focus:transition-[border-color_0.2s] focus:before:scale-100 focus:before:opacity-[0.12] focus:before:shadow-black/60 focus:before:transition-[box-shadow_0.2s,transform_0.2s] focus:after:absolute focus:after:z-[1] focus:after:block focus:after:h-[0.875rem] focus:after:w-[0.875rem] focus:after:rounded-[0.125rem] focus:after:content-[''] checked:focus:before:scale-100 checked:focus:before:shadow-checkbox checked:focus:before:transition-[box-shadow_0.2s,transform_0.2s] checked:focus:after:-mt-px checked:focus:after:ms-[0.25rem] checked:focus:after:h-[0.8125rem] checked:focus:after:w-[0.375rem] checked:focus:after:rotate-45 checked:focus:after:rounded-none checked:focus:after:border-[0.125rem] checked:focus:after:border-l-0 checked:focus:after:border-t-0 checked:focus:after:border-solid checked:focus:after:border-white checked:focus:after:bg-transparent rtl:float-right dark:border-neutral-400 dark:checked:border-primary dark:checked:bg-primary"
-    //                   type="checkbox"
-    //                   id="exampleCheck2"
-    //                 />
-    //                 <label
-    //                   className="inline-block ps-[0.15rem] hover:cursor-pointer"
-    //                   htmlFor="exampleCheck2"
-    //                 >
-    //                   Remember me
-    //                 </label>
-    //               </div>
-
-    //             </div>
-    //             {/* Register button */}
-    //             <div className="text-center lg:text-left">
-    //               <button
-    //                 type="submit"
-    //                 className="inline-block w-full rounded bg-primary px-7 pb-2 pt-3 text-sm font-medium uppercase leading-normal text-white shadow-primary-3 transition duration-150 ease-in-out hover:bg-primary-accent-300 hover:shadow-primary-2 focus:bg-primary-accent-300 focus:shadow-primary-2 focus:outline-none focus:ring-0 active:bg-primary-600 active:shadow-primary-2 dark:shadow-black/30 dark:hover:shadow-dark-strong dark:focus:shadow-dark-strong dark:active:shadow-dark-strong"
-    //                 data-twe-ripple-init
-    //                 data-twe-ripple-color="light"
-    //               >
-    //                 Register
-    //               </button>
-    //               {/* Register link */}
-    //               <p className="mb-0 mt-2 pt-1 text-sm font-semibold">
-    //                 Have an account?
-    //                 <a
-    //                   href="/auth/login"
-    //                   className="text-danger transition duration-150 ease-in-out hover:text-danger-600 focus:text-danger-600 active:text-danger-700"
-    //                 >
-    //                   Login
-    //                 </a>
-    //               </p>
-    //             </div>
-    //           </form>
-    //         </div>
-    //       </div>
-    //     </div>
-    //   </section>
-    // </div>
   );
 }
