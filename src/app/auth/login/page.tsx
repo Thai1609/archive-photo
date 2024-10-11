@@ -1,29 +1,30 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { deleteCookie, setCookie } from "cookies-next";
-import Link from "next/link";
+import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import axios from "axios";
-
+import ModalForgotPassword from "@/app/components/ModalForgotPassword";
+import { useDispatch } from "react-redux";
+import { setLogin } from "@/app/redux/slices/authorization/authorizationSlice";
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
-
-import ModalForgotPassword from "@/app/components/ModalForgotPassword";
-
+import { AppDispatch } from "@/app/redux/store";
+import { setUserProfileRedux } from "@/app/redux/slices/user/userProfileSlice";
 export default function LoginPage(req: any, res: any) {
   deleteCookie("token");
+  const dispatch = useDispatch<AppDispatch>();
 
-  const email = useState("");
   //Open modal confirm email
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
   const router = useRouter();
   const url = "http://localhost:8080/api/auth/login";
   const urlLoginWithGoogle =
     "http://localhost:8080/oauth2/authorization/google";
+
+  const urlGetData = "http://localhost:8080/api/user/my-info";
 
   const [formData, setFormData] = useState({
     email: "",
@@ -69,8 +70,7 @@ export default function LoginPage(req: any, res: any) {
         },
         withCredentials: true,
       });
-
-      console.log("status: ", response.status);
+      dispatch(setLogin(response.data.result));
 
       if (response.data.result.authenticated) {
         setCookie("token", response.data.result.token, {
@@ -78,7 +78,23 @@ export default function LoginPage(req: any, res: any) {
           res,
           maxAge: 60,
         });
-        router.push("/photos");
+
+        const url = "http://localhost:8080/api/user/my-info";
+        const cookieToken = getCookie("token");
+
+        try {
+          const response = await axios.get(url, {
+            headers: {
+              Authorization: `Bearer ${cookieToken}`,
+            },
+          });
+          //set data to redux
+          dispatch(setUserProfileRedux(response.data.result.userProfile));
+
+          router.push("/photos");
+        } catch (error) {
+          console.log(error);
+        }
       } else if (response.status === 400) {
         toast.error(JSON.stringify(response.data.message));
       } else {

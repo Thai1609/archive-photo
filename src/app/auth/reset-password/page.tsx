@@ -55,7 +55,7 @@ export default function pageConfirm() {
   };
 
   const url = "http://localhost:8080/api/auth/reset-password";
-  
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",

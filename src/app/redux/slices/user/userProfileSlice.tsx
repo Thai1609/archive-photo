@@ -7,11 +7,11 @@ const initialState: UserProfile = {
   gender: "",
   phone: "",
   image: [],
-  dob: "", 
+  dob: "",
 };
 
 const UserProfileSlice = createSlice({
-  name: "UserDetail",
+  name: "userProfile",
   initialState,
   reducers: {
     setUserProfileRedux(state, action: PayloadAction<UserProfile>) {
