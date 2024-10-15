@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
 import axios from "axios";
 import ModalCreateUser from "@/app/components/ModalCreateUser";
 
@@ -41,7 +40,6 @@ export default function RegisterPage() {
         },
         withCredentials: true,
       });
-      const email = response.data;
       console.log("email: ", response.data);
       setIsModalOpen(true);
       // router.push(`/auth/confirm?email=${encodeURIComponent(email)}`);
@@ -160,7 +158,7 @@ export default function RegisterPage() {
             <div className="mt-12">
               <button
                 type="submit"
-                 className="w-max shadow-xl py-3 px-6 text-sm text-gray-800 font-semibold rounded-md bg-transparent bg-yellow-400 hover:bg-yellow-500 focus:outline-none"
+                className="w-max shadow-xl py-3 px-6 text-sm text-gray-800 font-semibold rounded-md bg-transparent bg-yellow-400 hover:bg-yellow-500 focus:outline-none"
               >
                 Register
               </button>
@@ -175,7 +173,11 @@ export default function RegisterPage() {
               </p>
             </div>
           </form>
-          <ModalCreateUser isOpen={isModalOpen} onClose={closeModal} email = {email}></ModalCreateUser>
+          <ModalCreateUser
+            isOpen={isModalOpen}
+            onClose={closeModal}
+            email={email}
+          ></ModalCreateUser>
         </div>
       </div>
     </div>
