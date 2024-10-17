@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { getCookie, setCookie } from "cookies-next";
 import axios from "axios";
 import ModalForgotPassword from "@/app/components/ModalForgotPassword";
-import { useDispatch } from "react-redux";
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -71,28 +70,11 @@ export default function LoginPage(req: NextApiRequest, res: NextApiResponse) {
         setCookie("token", response.data.result.token, {
           req,
           res,
-          maxAge: 10,
+          maxAge: 60*10,
           path: "/", // Cookie is valid for the whole site
           secure: process.env.NODE_ENV === "production", // Only set secure cookies in production
+          //httpOnly: true, // Ngăn không cho JavaScript phía client truy cập
         });
-
-        // const url = "http://localhost:8080/api/user/my-info";
-        const cookieToken = getCookie("token");
-
-        // try {
-        //   const response = await axios.get(url, {
-        //     headers: {
-        //       Authorization: `Bearer ${cookieToken}`,
-        //     },
-        //   });
-        //   //set data to redux
-        //   dispatch(setUserProfileRedux(response.data.result.userProfile));
-
-        //   router.push("/home");
-        // } catch (error) {
-        //   console.log(error);
-        // }
-        console.log(cookieToken);
         router.push("/home");
       } else if (response.status === 400) {
         toast.error(JSON.stringify(response.data.message));
