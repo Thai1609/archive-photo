@@ -1,4 +1,5 @@
 "use client";
+import AddGalleries from "@/app/components/ModalAddGallery";
 import axios from "axios";
 import { getCookie } from "cookies-next";
 import { useRouter } from "next/navigation";
@@ -6,49 +7,52 @@ import React, { useEffect, useState } from "react";
 
 export default function page() {
   const [data, setData] = useState([]);
-  const [page, setPage] = useState(1); // Trang hiện tại
-  const [totalPages, setTotalPages] = useState(1); // Tổng số trang
-  const limit = 10; // Số lượng bản ghi trên mỗi trang
   const router = useRouter();
+
+  const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
+  const [totalPages, setTotalPages] = useState(1); // Tổng số trang
+  const pageSize = 6; // Số bản ghi trên mỗi trang
+
+  const url = "http://localhost:8080/api/gallery/get-all";
+
   useEffect(() => {
-    const cookieToken = getCookie("token");
-    if (cookieToken) {
-      const url = "http://localhost:8080/api/gallery/get-all";
+    const fetchData = async () => {
+      try {
+        const cookieToken = getCookie("token");
 
-      const fetchData = async (page: number) => {
-        try {
-          const response = await axios.get(url, {
-            headers: {
-              Authorization: `Bearer ${cookieToken}`,
-            },
-          });
-          console.log("API Response:", response.data); // Log the data structure
+        const response = await axios.get(url, {
+          headers: {
+            Authorization: `Bearer ${cookieToken}`,
+          },
+          params: { page: currentPage - 1, size: pageSize }, // Sử dụng tham số page và size đúng
+        });
 
-          setData(
-            Array.isArray(response.data.result)
-              ? response.data.result
-              : response.data || []
-          );
-          // Set the response data to state
-        } catch (error) {
-          console.error("Error:", error);
-        }
-      };
+        setData(response.data.content);
+        setTotalPages(response.data.totalPages); // Cập nhật totalPages từ API
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu từ API:", error);
+      }
+    };
+    fetchData();
+  }, [currentPage]);
 
-      fetchData(page);
-    }
-  }, [page]);
-
-  const handleNextPage = () => {
-    if (page < totalPages) {
-      setPage((prevPage) => prevPage + 1);
+  // Hàm chuyển đến trang trước
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
     }
   };
 
-  const handlePrevPage = () => {
-    if (page > 1) {
-      setPage((prevPage) => prevPage - 1);
+  // Hàm chuyển đến trang kế tiếp
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
     }
+  };
+
+  // Hàm chuyển đến trang bất kỳ
+  const handlePageClick = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
   };
 
   // href={`/products/${product.id}`}
@@ -58,6 +62,7 @@ export default function page() {
 
   return (
     <>
+      <AddGalleries></AddGalleries>
       <div className="bg-white font-[sans-serif] my-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center">
@@ -100,6 +105,64 @@ export default function page() {
           </div>
         </div>
       </div>
+
+      <ul className="flex space-x-4 justify-center mt-4">
+        {/* Nút quay lại trang trước */}
+        <li
+          onClick={handlePrevPage}
+          className={`flex items-center justify-center shrink-0 bg-gray-300 w-10 h-10 rounded-lg cursor-pointer ${
+            currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-4 fill-gray-400"
+            viewBox="0 0 55.753 55.753"
+          >
+            <path
+              d="M12.745 23.915c.283-.282.59-.52.913-.727L35.266 1.581a5.4 5.4 0 0 1 7.637 7.638L24.294 27.828l18.705 18.706a5.4 5.4 0 0 1-7.636 7.637L13.658 32.464a5.367 5.367 0 0 1-.913-.727 5.367 5.367 0 0 1-1.572-3.911 5.369 5.369 0 0 1 1.572-3.911z"
+              data-original="#000000"
+            />
+          </svg>
+        </li>
+
+        {/* Hiển thị số trang */}
+        {[...Array(totalPages)].map((_, i) => {
+          const pageNumber = i + 1;
+          return (
+            <li
+              key={pageNumber}
+              onClick={() => handlePageClick(pageNumber)}
+              className={`flex items-center justify-center shrink-0 w-10 h-10 rounded-lg cursor-pointer text-base font-bold ${
+                currentPage === pageNumber
+                  ? "bg-blue-500 text-white border-2 border-blue-500"
+                  : "hover:bg-gray-50 border-2 text-[#333]"
+              }`}
+            >
+              {pageNumber}
+            </li>
+          );
+        })}
+
+        {/* Nút đến trang kế tiếp */}
+        <li
+          onClick={handleNextPage}
+          className={`flex items-center justify-center shrink-0 bg-gray-300 w-10 h-10 rounded-lg cursor-pointer ${
+            currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-4 fill-gray-400 rotate-180"
+            viewBox="0 0 55.753 55.753"
+          >
+            <path
+              d="M12.745 23.915c.283-.282.59-.52.913-.727L35.266 1.581a5.4 5.4 0 0 1 7.637 7.638L24.294 27.828l18.705 18.706a5.4 5.4 0 0 1-7.636 7.637L13.658 32.464a5.367 5.367 0 0 1-.913-.727 5.367 5.367 0 0 1-1.572-3.911 5.369 5.369 0 0 1 1.572-3.911z"
+              data-original="#000000"
+            />
+          </svg>
+        </li>
+      </ul>
     </>
   );
 }
