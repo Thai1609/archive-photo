@@ -24,7 +24,7 @@ export default function page() {
           headers: {
             Authorization: `Bearer ${cookieToken}`,
           },
-          params: { page: currentPage - 1, size: pageSize }, // Sử dụng tham số page và size đúng
+          params: { page: currentPage - 1, size: pageSize }, // Sử dụng tham số page và size
         });
 
         setData(response.data.content);
@@ -70,6 +70,7 @@ export default function page() {
               LATEST BLOGS
             </h2>
           </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-16 max-lg:max-w-3xl max-md:max-w-md mx-auto">
             {Array.isArray(data) && data.length > 0 ? (
               data.map((item, index) => (
@@ -88,7 +89,7 @@ export default function page() {
                       10 FEB 2023 | BY JOHN DOE
                     </span>
                     <h3 className="text-xl font-bold text-gray-800">
-                      A Guide to Igniting Your Imagination
+                      {item.nameImage}
                     </h3>
                     <hr className="my-4" />
                     <p className="text-gray-400 text-sm">
@@ -107,7 +108,6 @@ export default function page() {
       </div>
 
       <ul className="flex space-x-4 justify-center mt-4">
-        {/* Nút quay lại trang trước */}
         <li
           onClick={handlePrevPage}
           className={`flex items-center justify-center shrink-0 bg-gray-300 w-10 h-10 rounded-lg cursor-pointer ${
@@ -126,7 +126,6 @@ export default function page() {
           </svg>
         </li>
 
-        {/* Hiển thị số trang */}
         {[...Array(totalPages)].map((_, i) => {
           const pageNumber = i + 1;
           return (
@@ -144,7 +143,6 @@ export default function page() {
           );
         })}
 
-        {/* Nút đến trang kế tiếp */}
         <li
           onClick={handleNextPage}
           className={`flex items-center justify-center shrink-0 bg-gray-300 w-10 h-10 rounded-lg cursor-pointer ${

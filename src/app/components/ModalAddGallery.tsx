@@ -1,15 +1,14 @@
 import axios from "axios";
 import { getCookie } from "cookies-next";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { Button } from "reactstrap";
 
 export default function AddGalleries() {
-  const [dataTag, setDataTag] = useState([]);
   const [options, setOptions] = useState<string[]>([]);
-  const [imagePreview, setImagePreview] = useState<string | ArrayBuffer | null>(
-    null
-  );
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,7 +22,6 @@ export default function AddGalleries() {
           },
         });
 
-        setDataTag(response.data.result);
         const tagNames = response.data.result.map(
           (tag: { name: any }) => tag.name
         );
@@ -36,55 +34,28 @@ export default function AddGalleries() {
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (e.target.files) {
-        setSelectedFiles(Array.from(e.target.files)); // Convert FileList to an array
-      }
+    const files = e.target.files;
+    if (files) {
+      const fileArray = Array.from(files); // Convert FileList to an array
+      setSelectedFiles(fileArray);
 
-      // Create an image preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+      // Create image previews for all selected files
+      const previewArray: string[] = [];
+      fileArray.forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          previewArray.push(reader.result as string);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!selectedFiles) {
-      alert("Please select a file first!");
-      return;
-    }
-
-    // Create a form data object to send the file to the server
-    const formData = new FormData();
-
-    selectedFiles.forEach((file) => {
-      formData.append("file", file); // Append the files under "file"
-    });
-
-    // POST the form data to your API route
-    try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
+          // Update the image previews state after all files are processed
+          if (previewArray.length === fileArray.length) {
+            setImagePreviews(previewArray);
+          }
+        };
+        reader.readAsDataURL(file);
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to upload image");
-      }
-
-      const data = await res.json();
-      alert(`File uploaded successfully: ${data.fileUrl}`);
-    } catch (error) {
-      console.error(error);
-      alert("Failed to upload image");
     }
   };
-  const [inputValue, setInputValue] = useState("");
+
   const [filteredOptions, setFilteredOptions] = useState(options);
 
   const dropdownToggle = document.getElementById("dropdownToggle");
@@ -98,12 +69,16 @@ export default function AddGalleries() {
   }, [options, inputValue]); // Dependency on `options` and `inputValue`
 
   // Handle input change
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value); // Update search term
-  };
+  // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setInputValue(e.target.value); // Update search term
+  // };
 
-  const handleOptionSelect = (option: string) => {
-    setInputValue(option);
+  const handleOptionSelect = (intIdTag: string) => {
+    // setInputValue(option);
+    setFormData((prevFormData) => ({
+      ...prevFormData, // Spread the existing form data
+      tag: intIdTag, // Set the title to the selected option
+    }));
 
     if (dropdownToggle && dropdownMenu) {
       dropdownMenu.classList.add("hidden");
@@ -143,7 +118,52 @@ export default function AddGalleries() {
       };
     }
   });
+  const [formData, setFormData] = useState({
+    nameImage: "",
+    tag: "",
+  });
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedFiles) {
+      alert("Please select a file first!");
+      return;
+    }
+
+    const data = new FormData();
+
+    selectedFiles.forEach((file) => {
+      data.append("file", file); // Append the files under "file"
+    });
+
+    data.append(
+      "request",
+      new Blob([JSON.stringify(formData)], { type: "application/json" })
+    ); // append JSON
+
+    data.getAll("file").forEach((file) => console.log("File:", file));
+    console.log("Request:", data.get("request"));
+
+    try {
+      const urlUpload = "http://localhost:8080/api/gallery/upload-image";
+      const cookieToken = getCookie("token");
+
+      const response = await axios.post(urlUpload, data, {
+        withCredentials: true,
+
+        headers: {
+          Authorization: `Bearer ${cookieToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      window.location.reload();
+      console.log("Response:", response.data);
+      // router.push(`/auth/confirm?email=${encodeURIComponent(email)}`);
+    } catch (error) {
+      console.error("Upload error:", error);
+    }
+  };
   return (
     <div className="font-sans bg-white">
       <div className="p-4 lg:max-w-7xl max-w-4xl mx-auto">
@@ -162,40 +182,7 @@ export default function AddGalleries() {
                     accept="image/*"
                     className="  w-full text-gray-400 font-semibold text-sm bg-white border file:cursor-pointer cursor-pointer file:border-0 file:py-2.5 file:px-4 file:mr-4 file:bg-gray-100 file:hover:bg-gray-200 file:text-gray-600 rounded"
                   />
-                  {/* <div className="mt-5 bg-gray-50 text-gray-600 text-base rounded w-auto h-auto flex flex-col items-center justify-center border-2 border-gray-300 border-dashed">
-                    {imagePreview ? (
-                      <>
-                        <img
-                          src={imagePreview as string}
-                          alt="Selected Image"
-                          style={{
-                            width: "auto",
-                            height: "auto",
-                          }}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="w-12 mb-2 fill-gray-400"
-                          viewBox="0 0 32 32"
-                        >
-                          <path
-                            d="M23.75 11.044a7.99 7.99 0 0 0-15.5-.009A8 8 0 0 0 9 27h3a1 1 0 0 0 0-2H9a6 6 0 0 1-.035-12 1.038 1.038 0 0 0 1.1-.854 5.991 5.991 0 0 1 11.862 0A1.08 1.08 0 0 0 23 13a6 6 0 0 1 0 12h-3a1 1 0 0 0 0 2h3a8 8 0 0 0 .75-15.956z"
-                            data-original="#000000"
-                          />
-                          <path
-                            d="M20.293 19.707a1 1 0 0 0 1.414-1.414l-5-5a1 1 0 0 0-1.414 0l-5 5a1 1 0 0 0 1.414 1.414L15 16.414V29a1 1 0 0 0 2 0V16.414z"
-                            data-original="#000000"
-                          />
-                        </svg>
-                        <p className="text-base font-semibold text-gray-600">
-                          Drag &amp; Drop files here
-                        </p>
-                      </>
-                    )}
-                  </div> */}
+
                   <div style={{ marginTop: "20px" }}>
                     {selectedFiles.length > 0 && (
                       <div>
@@ -223,25 +210,18 @@ export default function AddGalleries() {
               </div>
             </div>
             <div className="lg:col-span-2">
-              <h2 className="text-2xl font-extrabold text-gray-800">
-                Acer Aspire Pro 12 | Laptop
-              </h2>
               <div className="flex space-x-2 mt-4">
                 <div className="flex flex-col justify-center max-w-lg ml-1  space-y-6 font-[sans-serif] text-[#333]">
                   <div>
-                    <label className="mb-2 text-lg block">Large Input</label>
+                    <label className="mb-2 text-base block">Name Image</label>
                     <input
                       type="text"
-                      placeholder="Large Input"
-                      className="px-4 py-2.5 text-lg rounded-md bg-white border border-gray-400 w-full outline-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 text-base block">Medium Input</label>
-                    <input
-                      type="text"
-                      placeholder="Medium Input"
-                      className="px-4 py-2 text-base rounded-md bg-white border border-gray-400 w-full outline-blue-500"
+                      placeholder="Name Image Input"
+                      value={formData.nameImage}
+                      onChange={(e) =>
+                        setFormData({ ...formData, nameImage: e.target.value })
+                      }
+                      className="w-64 px-4 py-2 text-base rounded-md bg-white border border-gray-400   outline-blue-500"
                     />
                   </div>
                 </div>
@@ -251,8 +231,7 @@ export default function AddGalleries() {
                 <input
                   id="dropdownToggle"
                   type="text"
-                  value={inputValue}
-                  onChange={handleInputChange} // Xử lý khi giá trị input thay đổi
+                  value={formData.tag}
                   readOnly
                   placeholder="Select Tag..."
                   className="px-4 py-2 w-full border border-gray-300 rounded"

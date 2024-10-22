@@ -35,10 +35,10 @@ export default function RegisterPage() {
     console.log("formData: ", formData);
     try {
       const response = await axios.post(url, formData, {
+        withCredentials: true,
         headers: {
           "Content-Type": "application/json",
         },
-        withCredentials: true,
       });
       console.log("email: ", response.data);
       setIsModalOpen(true);
