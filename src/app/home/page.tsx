@@ -1,11 +1,12 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import Header from "../components/Header";
-import axios from "axios";
-import { getCookie } from "cookies-next";
-import "react-toastify/dist/ReactToastify.css";
-import { toast } from "react-toastify";
+import React from "react";
+import Tag_Get_API from "../get_api/page";
 
 export default function Photos() {
-  return <>HOME PAGE</>;
+  return (
+    <>
+      HOME PAGE
+      <Tag_Get_API></Tag_Get_API>
+    </>
+  );
 }

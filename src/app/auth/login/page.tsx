@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getCookie, setCookie } from "cookies-next";
+import { setCookie } from "cookies-next";
 import axios from "axios";
 import ModalForgotPassword from "@/app/components/ModalForgotPassword";
 import "react-toastify/dist/ReactToastify.css";
@@ -9,8 +9,6 @@ import { toast } from "react-toastify";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default function LoginPage(req: NextApiRequest, res: NextApiResponse) {
-  const [error, setError] = useState("");
-
   //Open modal confirm email
   const [isModalOpen, setIsModalOpen] = useState(false);
   const closeModal = () => setIsModalOpen(false);
@@ -38,22 +36,26 @@ export default function LoginPage(req: NextApiRequest, res: NextApiResponse) {
   };
 
   const handleLoginWithGoogle = async () => {
-    try {
-      const response = await axios.post(urlLoginWithGoogle, {});
-      console.log("response: ", response);
-      if (response.status === 200) {
-        setCookie("token", response.data.result.token, {
-          req,
-          res,
-          maxAge: 60 * 60 * 24,
-        });
-        router.push("/photos");
-      } else {
-        console.error("Login fail");
-      }
-    } catch (error) {
-      console.error(" login error:", error);
-    }
+    console.log("click: ");
+    window.location.href = "http://localhost:8080/oauth2/authorization/google";
+    // try {
+    //   const response = await axios.post(urlLoginWithGoogle, {});
+    //   console.log("response: ", response);
+    //   if (response.status === 200) {
+    //     setCookie("token", response.data.result.token, {
+    //       req,
+    //       res,
+    //       maxAge: 60 * 10,
+    //       path: "/", // Cookie is valid for the whole site
+    //       secure: process.env.NODE_ENV === "production",
+    //     });
+    //     router.push("/home");
+    //   } else {
+    //     console.error("Login fail");
+    //   }
+    // } catch (error) {
+    //   console.error(" login error:", error);
+    // }
   };
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
@@ -70,7 +72,7 @@ export default function LoginPage(req: NextApiRequest, res: NextApiResponse) {
         setCookie("token", response.data.result.token, {
           req,
           res,
-          maxAge: 60*10,
+          maxAge: 60 * 10,
           path: "/", // Cookie is valid for the whole site
           secure: process.env.NODE_ENV === "production", // Only set secure cookies in production
           //httpOnly: true, // Ngăn không cho JavaScript phía client truy cập
