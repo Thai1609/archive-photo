@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import Photos from "./home/page";
+import Dasboard from "../../pages/Dasboard";
 
 export default function Home() {
-  return <Photos />;
+  return <Dasboard></Dasboard>;
 }

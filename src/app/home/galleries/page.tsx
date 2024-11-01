@@ -22,7 +22,7 @@ export default function page() {
   // const [totalPages, setTotalPages] = useState(1); // Tổng số trang
   // const pageSize = 4; // Số bản ghi trên mỗi trang
 
-  const url = "http://localhost:8080/api/gallery/get-all";
+  const url = "http://localhost:8080/api/gallery/my-gallery";
 
   const [state, dispatch] = useReducer(galleryReducer, initialState);
   const { galleries, currentPage, pageSize, totalPages, isLoading, isError } =
@@ -39,7 +39,7 @@ export default function page() {
           headers: {
             Authorization: `Bearer ${cookieToken}`,
           },
-          params: { page: currentPage - 1, size: pageSize }, // Sử dụng tham số page và size
+          params: { userId: 1, page: currentPage - 1, size: pageSize }, // Sử dụng tham số page và size
         });
 
         // setData(response.data.content);

@@ -1,4 +1,5 @@
 "use client";
+import SessionWapper from "../../../pages/SessionWapper";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 

@@ -3,15 +3,17 @@ import { deleteCookie, getCookie } from "cookies-next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import axios from "axios";
+import { signOut, useSession } from "next-auth/react";
 
 export default function Header() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const pathname = usePathname(); // Lấy pathname hiện tại
+  const { data: session } = useSession();
 
   const menuItems = [
     { name: "Home", path: "/home" },
-    { name: "Gallery", path: "/home/galleries" },
+    { name: "My Gallery", path: "/home/galleries" },
   ];
 
   useEffect(() => {
@@ -73,7 +75,10 @@ export default function Header() {
             Authorization: `Bearer ${cookieToken}`,
           },
         });
-
+        localStorage.setItem(
+          "user",
+          JSON.stringify(response.data.result.userProfile)
+        );
         setData(response.data.result.userProfile);
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu từ API:", error);
@@ -84,6 +89,7 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
+      signOut();
       deleteCookie("token"); // Clear cookie
       console.log("Cookie cleared successfully");
     } catch (error) {

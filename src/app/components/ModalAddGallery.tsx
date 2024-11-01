@@ -8,7 +8,7 @@ export default function AddGalleries() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const router = useRouter();
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,7 +23,7 @@ export default function AddGalleries() {
         });
 
         const tagNames = response.data.result.map(
-          (tag: { name: any }) => tag.name
+          (nameTag: { name: any }) => nameTag.name
         );
         setOptions(tagNames);
       } catch (error) {
@@ -72,12 +72,23 @@ export default function AddGalleries() {
   // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   //   setInputValue(e.target.value); // Update search term
   // };
+  const [user, setUser] = useState(null);
 
-  const handleOptionSelect = (intIdTag: string) => {
+  useEffect(() => {
+    // Retrieve user data from localStorage
+    const userData = localStorage.getItem("user");
+
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+  
+  const handleOptionSelect = (nameTag: string) => {
     // setInputValue(option);
     setFormData((prevFormData) => ({
-      ...prevFormData, // Spread the existing form data
-      tag: intIdTag, // Set the title to the selected option
+      ...prevFormData,  
+      nameTag: nameTag, // Set the title to the selected option
+      userId: user.id
     }));
 
     if (dropdownToggle && dropdownMenu) {
@@ -120,7 +131,8 @@ export default function AddGalleries() {
   });
   const [formData, setFormData] = useState({
     nameImage: "",
-    tag: "",
+    nameTag: "",
+    userId: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -231,7 +243,7 @@ export default function AddGalleries() {
                 <input
                   id="dropdownToggle"
                   type="text"
-                  value={formData.tag}
+                  value={formData.nameTag}
                   readOnly
                   placeholder="Select Tag..."
                   className="px-4 py-2 w-full border border-gray-300 rounded"
