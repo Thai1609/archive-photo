@@ -15,7 +15,7 @@ const initialState = {
   isError: false,
 };
 
-export default function page() {
+export default function HomePage() {
   const router = useRouter();
 
   // const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại

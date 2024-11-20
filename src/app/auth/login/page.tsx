@@ -6,11 +6,8 @@ import axios from "axios";
 import ModalForgotPassword from "@/app/components/ModalForgotPassword";
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
-import { NextApiRequest, NextApiResponse } from "next";
-import { signIn, useSession } from "next-auth/react";
-import { getToken } from "next-auth/jwt";
 
-const secret = process.env.SECRET;
+import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
   //Open modal confirm email
@@ -20,7 +17,6 @@ export default function LoginPage() {
   const router = useRouter();
 
   const url = "http://localhost:8080/api/auth/login";
-  // http://localhost:8080/oauth2/authorization/google
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -38,9 +34,9 @@ export default function LoginPage() {
   };
 
   const handleLoginWithGoogle = async () => {
-    console.log("click: LoginWithGoogle");
-    signIn("google");
+    await signIn("google");
   };
+
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault(); // Prevent the default form submission
     try {
@@ -64,7 +60,6 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error(" login error:", error);
-      toast.error(JSON.stringify(error.response.data.message));
     }
   };
 

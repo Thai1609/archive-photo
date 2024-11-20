@@ -1,20 +1,48 @@
 import React, { useEffect, useState } from "react";
 import { deleteCookie, getCookie } from "cookies-next";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import axios from "axios";
 import { signOut, useSession } from "next-auth/react";
 
 export default function Header() {
   const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
   const pathname = usePathname(); // Lấy pathname hiện tại
-  const { data: session } = useSession();
+  const [token, setToken] = useState("");
 
   const menuItems = [
     { name: "Home", path: "/home" },
     { name: "My Gallery", path: "/home/galleries" },
   ];
+
+  const { data: session } = useSession();
+  const cookieToken = getCookie("token");
+
+  if (session) {
+    setToken(session.accessToken);
+  }
+
+  if (cookieToken) {
+    setToken(cookieToken);
+  }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const urlGetTag = "http://localhost:8080/api/gallery/tag/get-all";
+
+        const response = await axios.get(urlGetTag, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        localStorage.setItem("tags", JSON.stringify(response.data.result));
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu từ API:", error);
+      }
+    };
+    fetchData();
+  }, []);
 
   useEffect(() => {
     const toggleOpen = document.getElementById("toggleOpen");
@@ -68,11 +96,9 @@ export default function Header() {
     const fetchData = async () => {
       try {
         const url = "http://localhost:8080/api/user/my-info";
-        const cookieToken = getCookie("token");
-
         const response = await axios.get(url, {
           headers: {
-            Authorization: `Bearer ${cookieToken}`,
+            Authorization: `Bearer ${token}`,
           },
         });
         localStorage.setItem(
@@ -89,9 +115,9 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      signOut();
-      deleteCookie("token"); // Clear cookie
-      console.log("Cookie cleared successfully");
+      signOut({
+        callbackUrl: "/auth/login",
+      });
     } catch (error) {
       console.error("Error clearing cookie:", error);
     }
@@ -101,7 +127,7 @@ export default function Header() {
     <header className="shadow-lg py-4 px-4 sm:px-0 bg-white font-[sans-serif] min-h-[70px] tracking-wide relative z-50">
       <section className="py-2 bg-[#0066ff] text-white text-right px-10">
         <p className="text-sm">
-          <strong className="mx-3">Address:</strong>SWF New York 185669
+          <strong className="mx-3">Address:</strong>HCM
           <strong className="mx-3">Contact No:</strong>1800333665
         </p>
       </section>
@@ -240,8 +266,7 @@ export default function Header() {
                     <ul className="space-y-1.5">
                       <li>
                         <a
-                          href=""
-                          className="text-sm text-red-500  onClick={handleLogout}"
+                          className="text-sm text-red-500"
                           onClick={handleLogout}
                         >
                           Logout

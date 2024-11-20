@@ -8,30 +8,6 @@ export default function AddGalleries() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [inputValue, setInputValue] = useState("");
-  
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const urlGetTag = "http://localhost:8080/api/gallery/tag/get-all";
-        const cookieToken = getCookie("token");
-
-        const response = await axios.get(urlGetTag, {
-          headers: {
-            Authorization: `Bearer ${cookieToken}`,
-          },
-        });
-
-        const tagNames = response.data.result.map(
-          (nameTag: { name: any }) => nameTag.name
-        );
-        setOptions(tagNames);
-      } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu từ API:", error);
-      }
-    };
-    fetchData();
-  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -77,18 +53,37 @@ export default function AddGalleries() {
   useEffect(() => {
     // Retrieve user data from localStorage
     const userData = localStorage.getItem("user");
+    const tags = localStorage.getItem("tags");
 
     if (userData) {
       setUser(JSON.parse(userData));
     }
+
+    if (tags) {
+      try {
+        const parsedTags = JSON.parse(tags);
+
+        // Ensure parsedTags is an array before using map
+        if (Array.isArray(parsedTags)) {
+          // Extract the list of names from the tags and log it
+          const tagNames = parsedTags.map((tagItem) => tagItem.name);
+          console.log("Tags names:", tagNames);
+          setOptions(tagNames);
+        } else {
+          console.error("Tags data is not an array:", parsedTags);
+        }
+      } catch (error) {
+        console.error("Failed to parse tags from localStorage:", error);
+      }
+    }
   }, []);
-  
+
   const handleOptionSelect = (nameTag: string) => {
     // setInputValue(option);
     setFormData((prevFormData) => ({
-      ...prevFormData,  
+      ...prevFormData,
       nameTag: nameTag, // Set the title to the selected option
-      userId: user.id
+      userId: user.id,
     }));
 
     if (dropdownToggle && dropdownMenu) {
@@ -129,6 +124,7 @@ export default function AddGalleries() {
       };
     }
   });
+  
   const [formData, setFormData] = useState({
     nameImage: "",
     nameTag: "",
@@ -268,14 +264,6 @@ export default function AddGalleries() {
                       No options found
                     </li>
                   )}
-                  <li className="px-2 mt-6 sticky bottom-2">
-                    <button
-                      type="button"
-                      className="px-6 py-2 rounded w-full text-white text-sm tracking-wider border-none outline-none bg-blue-600 hover:bg-blue-700 active:bg-blue-600"
-                    >
-                      Add Tag
-                    </button>
-                  </li>
                 </ul>
               </div>
               <div className="flex flex-wrap gap-4 mt-8">
