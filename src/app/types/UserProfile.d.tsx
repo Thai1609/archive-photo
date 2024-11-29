@@ -3,7 +3,7 @@ interface UserProfile {
 
   lastName: string;
 
-  image: String[]|undefined;
+  image: string;
 
   address: string;
 

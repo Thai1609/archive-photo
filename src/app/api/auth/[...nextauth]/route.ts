@@ -3,22 +3,19 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
 const url = "http://localhost:8080/api/auth/google";
-
-const handler = NextAuth({
+export const authOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     }),
   ],
-  secret: process.env.NEXTAUTH_SECRET as string,
-
   callbacks: {
     async signIn({ user }) {
       try {
         const response = await axios.post(
           url,
-          { email: user.email, googleId: user.id },
+          { email: user.email, provider: "GOOGLE", providerId: user.id },
           {
             headers: {
               "Content-Type": "application/json",
@@ -26,7 +23,7 @@ const handler = NextAuth({
             withCredentials: true,
           }
         );
-        user.token = response.data.result.token;
+        user.backendToken = response.data.result.token;
 
         return true;
       } catch (error) {
@@ -35,18 +32,26 @@ const handler = NextAuth({
       }
     },
     async jwt({ token, user }) {
-      // Persist the token returned from signIn in the JWT
-      if (user) {
-        token.accessToken = user.token;
+      // Attach backendToken to the JWT token during initial login
+      if (user?.backendToken) {
+        token.backendToken = user.backendToken;
+      }
+      if (user?.provider === "google") {
+        token.sub = user.sub; // Add `sub` from Google profile
       }
       return token;
     },
+
     async session({ session, token }) {
-      // Add the accessToken to the session object
-      session.accessToken = token.accessToken;
+      // Attach backendToken to the session object
+      session.backendToken = token.backendToken;
+      session.user.sub = token.sub;
+
       return session;
     },
   },
-});
+  secret: process.env.SECRET,
+};
 
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

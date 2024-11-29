@@ -50,8 +50,7 @@ export default function LoginPage() {
       if (response.data.result.authenticated) {
         setCookie("token", response.data.result.token, {
           maxAge: 60 * 10,
-          path: "/", // Cookie is valid for the whole site
-        });
+         });
         router.push("/home");
       } else if (response.status === 400) {
         toast.error(JSON.stringify(response.data.message));

@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { deleteCookie, getCookie } from "cookies-next";
+import { getCookie } from "cookies-next";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import axios from "axios";
 import { signOut, useSession } from "next-auth/react";
 
 export default function Header() {
-  const [data, setData] = useState(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const pathname = usePathname(); // Lấy pathname hiện tại
   const [token, setToken] = useState("");
+  const [email, setEmail] = useState("");
+  const [providerId, setProviderId] = useState("");
 
   const menuItems = [
     { name: "Home", path: "/home" },
@@ -18,31 +20,73 @@ export default function Header() {
   const { data: session } = useSession();
   const cookieToken = getCookie("token");
 
-  if (session) {
-    setToken(session.accessToken);
-  }
+  useEffect(() => {
+    if (session?.backendToken) {
+      setToken(session.backendToken);
+      setEmail(session?.user?.email);
+      setProviderId(session?.user?.sub);
+    } else if (cookieToken) {
+      setToken(cookieToken);
+    }
+  }, [session, cookieToken]);
 
-  if (cookieToken) {
-    setToken(cookieToken);
-  }
+  useEffect(() => {
+    console.log("Token:", token);
+    console.log("Email:", email);
+    console.log("Provider ID:", providerId);
+  }, [token, email, providerId]);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!email || !providerId || !token) {
+        console.log("Required data is missing. Skipping fetchData.");
+        return;
+      }
       try {
-        const urlGetTag = "http://localhost:8080/api/gallery/tag/get-all";
+        const url = "http://localhost:8080/api/user/my-info";
 
-        const response = await axios.get(urlGetTag, {
-          headers: {
-            Authorization: `Bearer ${token}`,
+        const response = await axios.post(
+          url,
+          {
+            email: email,
+            provider: "GOOGLE",
+            providerId: providerId,
           },
-        });
-        localStorage.setItem("tags", JSON.stringify(response.data.result));
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify(response.data.result.userProfile)
+        );
+        setUserProfile(response.data.result.userProfile);
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu từ API:", error);
       }
     };
     fetchData();
-  }, []);
+  }, [email, providerId, token]); // Only run when these values are updated
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const urlGetTag = "http://localhost:8080/api/gallery/tag/get-all";
+
+  //       const response = await axios.get(urlGetTag, {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
+  //       localStorage.setItem("tags", JSON.stringify(response.data.result));
+  //     } catch (error) {
+  //       console.error("Lỗi khi lấy dữ liệu từ API:", error);
+  //     }
+  //   };
+  //   fetchData();
+  // }, []);
 
   useEffect(() => {
     const toggleOpen = document.getElementById("toggleOpen");
@@ -92,30 +136,11 @@ export default function Header() {
       };
     }
   });
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const url = "http://localhost:8080/api/user/my-info";
-        const response = await axios.get(url, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        localStorage.setItem(
-          "user",
-          JSON.stringify(response.data.result.userProfile)
-        );
-        setData(response.data.result.userProfile);
-      } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu từ API:", error);
-      }
-    };
-    fetchData();
-  }, []);
 
   const handleLogout = async () => {
     try {
       signOut({
+        redirect: true,
         callbackUrl: "/auth/login",
       });
     } catch (error) {
@@ -128,6 +153,9 @@ export default function Header() {
       <section className="py-2 bg-[#0066ff] text-white text-right px-10">
         <p className="text-sm">
           <strong className="mx-3">Address:</strong>HCM
+          <a className="text-sm text-red-500" onClick={handleLogout}>
+            Logout
+          </a>
           <strong className="mx-3">Contact No:</strong>1800333665
         </p>
       </section>
@@ -191,7 +219,7 @@ export default function Header() {
         </div>
         <div className="flex items-center max-lg:ml-auto space-x-5">
           <div className="flex items-center ml-auto ">
-            {data ? (
+            {userProfile ? (
               <>
                 <div>
                   <li
@@ -208,7 +236,7 @@ export default function Header() {
                         data-original="#000000"
                       />
                     </svg>
-                    Hi, {data.lastName}
+                    Hi, {userProfile.lastName}
                   </li>
                 </div>
               </>
