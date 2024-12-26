@@ -6,7 +6,6 @@ import axios from "axios";
 import ModalForgotPassword from "@/app/components/ModalForgotPassword";
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
-
 import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
@@ -49,16 +48,13 @@ export default function LoginPage() {
 
       if (response.data.result.authenticated) {
         setCookie("token", response.data.result.token, {
-          maxAge: 60 * 10,
-         });
+          maxAge: 60*10,
+        });
         router.push("/home");
-      } else if (response.status === 400) {
-        toast.error(JSON.stringify(response.data.message));
-      } else {
-        console.error("Login fail");
       }
     } catch (error) {
-      console.error(" login error:", error);
+      console.error("login error:", error.response?.data || error.message);
+      toast.error(JSON.stringify(error.response.data.message));
     }
   };
 

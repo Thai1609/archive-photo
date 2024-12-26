@@ -1,4 +1,4 @@
- import { getToken } from "next-auth/jwt";
+import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -13,8 +13,14 @@ export async function middleware(req: NextRequest) {
 
   console.log("token: ", token);
   console.log("tokenGG : ", tokenGG);
+  
+  if (!token && !tokenGG) {
+    if (pathname !== "/auth/login") {
+      return NextResponse.redirect(new URL("/auth/login", req.url));
+    }
+  }
 
-  if (tokenGG && pathname === "/auth/login") {
+  if (token && tokenGG && pathname === "/auth/login") {
     return NextResponse.redirect(new URL("/home", req.url));
   }
 

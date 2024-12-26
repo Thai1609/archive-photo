@@ -1,38 +1,33 @@
 "use client";
-import galleryReducer, { ACTIONS } from "@/app/reducers/galleryReducer";
+import galleryReducer, {
+  GALLERY_ACTIONS,
+  initialGalleryState,
+} from "@/app/reducers/galleryReducer/galleryReducer";
 import axios from "axios";
 import { getCookie } from "cookies-next";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useReducer, useState } from "react";
 
-const initialState = {
-  galleries: [],
-  currentPage: 1,
-  pageSize: 8,
-  totalPages: 1,
-  isLoading: false,
-  isError: false,
-};
-
 export default function HomePage() {
   const router = useRouter();
 
-  // const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
-  // const [totalPages, setTotalPages] = useState(1); // Tổng số trang
-  // const pageSize = 4; // Số bản ghi trên mỗi trang
-
   const url = "http://localhost:8080/api/gallery/get-all";
+  const cookieToken = getCookie("token");
 
-  const [state, dispatch] = useReducer(galleryReducer, initialState);
+  const [state, dispatch] = useReducer(galleryReducer, initialGalleryState);
   const { galleries, currentPage, pageSize, totalPages, isLoading, isError } =
     state;
 
   useEffect(() => {
-    const fetchData = async () => {
-      dispatch({ type: ACTIONS.FETCH_INIT });
+    console.log("data: ", galleries);
+    console.log("totalPages: ", totalPages);
+
+    let isMounted = true; // Prevent updates if component unmounts
+
+    const fetchGalleryData = async () => {
+      dispatch({ type: GALLERY_ACTIONS.FETCH_INIT });
 
       try {
-        const cookieToken = getCookie("token");
 
         const response = await axios.get(url, {
           headers: {
@@ -41,29 +36,32 @@ export default function HomePage() {
           params: { page: currentPage - 1, size: pageSize }, // Sử dụng tham số page và size
         });
 
-        // setData(response.data.content);
-        // setTotalPages(response.data.totalPages); // Cập nhật totalPages từ API
         const { content, totalPages } = response.data;
-        dispatch({
-          type: ACTIONS.FETCH_SUCCESS,
-          payload: { galleries: content, totalPages },
-        });
+        if (isMounted) {
+          dispatch({
+            type: GALLERY_ACTIONS.FETCH_SUCCESS,
+            payload: { galleries: content, totalPages },
+          });
+        }
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu từ API:", error);
-        dispatch({ type: ACTIONS.FETCH_ERROR });
+        if (isMounted) {
+          dispatch({ type: GALLERY_ACTIONS.FETCH_ERROR });
+        }
       }
     };
 
-    fetchData();
+    fetchGalleryData();
+    return () => {
+      isMounted = false; // Cleanup to prevent state updates after unmounting
+    };
   }, [currentPage, pageSize]);
 
-  console.log("data: ", galleries);
-  console.log("totalPages: ", totalPages);
   // Hàm chuyển đến trang trước
   const handlePrevPage = () => {
     if (currentPage > 1) {
       // currentPage == currentPage - 1;
-      dispatch({ type: ACTIONS.SET_PAGE, payload: currentPage - 1 });
+      dispatch({ type: GALLERY_ACTIONS.SET_PAGE, payload: currentPage - 1 });
     }
   };
 
@@ -71,57 +69,28 @@ export default function HomePage() {
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       // currentPage == currentPage + 1;
-      dispatch({ type: ACTIONS.SET_PAGE, payload: currentPage + 1 });
+      dispatch({ type: GALLERY_ACTIONS.SET_PAGE, payload: currentPage + 1 });
     }
   };
 
   // Hàm chuyển đến trang bất kỳ
   const handlePageClick = (pageNumber: number) => {
     currentPage == pageNumber;
-    dispatch({ type: ACTIONS.SET_PAGE, payload: pageNumber });
+    dispatch({ type: GALLERY_ACTIONS.SET_PAGE, payload: pageNumber });
   };
 
-  // href={`/products/${product.id}`}
   const handleNextPageById = (index: number) => {
     router.push(`/home/galleries/${index}`);
   };
 
   return (
     <>
-      <div className="bg-white font-[sans-serif] my-4">
+      <div className="bg-white font-[sans-serif] pt-10 ">
         <div className="max-w-6xl mx-auto">
-          {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-16 max-lg:max-w-3xl max-md:max-w-md mx-auto">
-            {Array.isArray(data) && data.length > 0 ? (
-              data.map((item, index) => (
-                <div
-                  key={index}
-                  className="bg-white cursor-pointer rounded overflow-hidden shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] relative top-0 hover:-top-2 transition-all duration-300"
-                  onClick={() => handleNextPageById(item.id)}
-                >
-                  <img
-                    src={item.urlImage}
-                    alt="Blog Post 1"
-                    className="w-full h-60 object-cover"
-                  />
-                  <div className="p-6">
-                    <span className="text-sm block text-gray-400 mb-2">
-                      10 FEB 2023 | BY JOHN DOE
-                    </span>
-                    <h3 className="text-xl font-bold text-gray-800">
-                      {item.nameImage}
-                    </h3>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <></>
-            )}
-          </div> */}
-
           <div className="overflow-x-auto font-[sans-serif]">
             <div className="font-sans py-4 mx-auto lg:max-w-6xl md:max-w-4xl max-sm:max-w-md">
               <div className="text-center mb-12">
-                <h2 className="text-3xl font-extrabold text-gray-800 inline-block relative after:absolute after:w-4/6 after:h-1 after:left-0 after:right-0 after:-bottom-4 after:mx-auto after:bg-pink-400 after:rounded-full">
+                <h2 className=" text-3xl font-extrabold text-gray-800 inline-block     after:w-4/6 after:h-1 after:left-0 after:right-0 after:-bottom-4 after:mx-auto after:bg-pink-400 after:rounded-full">
                   LATEST BLOGS
                 </h2>
               </div>

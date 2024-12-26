@@ -54,7 +54,7 @@ export default function AddGalleries() {
     // Retrieve user data from localStorage
     const userData = localStorage.getItem("user");
     const tags = localStorage.getItem("tags");
-
+ 
     if (userData) {
       setUser(JSON.parse(userData));
     }
@@ -124,7 +124,7 @@ export default function AddGalleries() {
       };
     }
   });
-  
+
   const [formData, setFormData] = useState({
     nameImage: "",
     nameTag: "",
@@ -177,8 +177,8 @@ export default function AddGalleries() {
       <div className="p-4 lg:max-w-7xl max-w-4xl mx-auto">
         <form onSubmit={handleSubmit} className="">
           <div className="grid items-start grid-cols-1 lg:grid-cols-5 gap-12 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] p-6 rounded-lg">
-            <div className="lg:col-span-3 w-full lg:sticky top-0 text-center">
-              <div className="px-4 py-10 rounded-lg shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] relative">
+            <div className="lg:col-span-3 w-full   top-0 text-center">
+              <div className="px-4 py-10 rounded-lg shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)]  ">
                 <div className="font-[sans-serif] max-w-md mx-auto">
                   <label className="text-base font-semibold text-gray-600 mb-2 block">
                     Upload files
@@ -191,22 +191,23 @@ export default function AddGalleries() {
                     className="  w-full text-gray-400 font-semibold text-sm bg-white border file:cursor-pointer cursor-pointer file:border-0 file:py-2.5 file:px-4 file:mr-4 file:bg-gray-100 file:hover:bg-gray-200 file:text-gray-600 rounded"
                   />
 
-                  <div style={{ marginTop: "20px" }}>
+                  <div className="mt-5">
                     {selectedFiles.length > 0 && (
-                      <div>
-                        <ul>
+                      <div className="mt-5">
+                        <ul className="flex flex-wrap gap-20">
                           {selectedFiles.map((file, index) => (
-                            <li key={index}>
-                              {file.name} - {Math.round(file.size / 1024)} KB
+                            <li
+                              key={index}
+                              className="flex flex-col items-center text-center"
+                            >
+                              <div className="mb-2.5">
+                                <span>{file.name}</span>
+                                <span>{Math.round(file.size / 1024)} KB</span>
+                              </div>
                               <img
                                 src={URL.createObjectURL(file)} // Create a URL for previewing the image
                                 alt={file.name}
-                                style={{
-                                  width: "100px",
-                                  height: "100px",
-                                  objectFit: "cover",
-                                  margin: "10px",
-                                }}
+                                className="w-24 h-24 object-cover border-r-4 shadow-md mt-2.5"
                               />
                             </li>
                           ))}
@@ -229,12 +230,12 @@ export default function AddGalleries() {
                       onChange={(e) =>
                         setFormData({ ...formData, nameImage: e.target.value })
                       }
-                      className="w-64 px-4 py-2 text-base rounded-md bg-white border border-gray-400   outline-blue-500"
+                      className="w-64 px-4 py-2 text-base rounded-md bg-white border border-gray-400  outline-blue-500"
                     />
                   </div>
                 </div>
               </div>
-              <div className="relative w-64">
+              <div className="w-64">
                 <label className="mb-2 text-base block">Tag</label>
                 <input
                   id="dropdownToggle"
@@ -247,7 +248,7 @@ export default function AddGalleries() {
 
                 <ul
                   id="dropdownMenu"
-                  className=" hidden absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded max-h-60 overflow-auto z-10"
+                  className=" hidden   left-0 right-0 mt-1 bg-white border border-gray-300 rounded max-h-60 overflow-auto z-10"
                 >
                   {filteredOptions.length > 0 ? (
                     filteredOptions.map((option, index) => (

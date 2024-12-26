@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { getCookie } from "cookies-next";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import axios from "axios";
+import { deleteCookie, getCookie } from "cookies-next";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import Link from "next/link";
+import axios from "axios";
 
 export default function Header() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -11,6 +11,7 @@ export default function Header() {
   const [token, setToken] = useState("");
   const [email, setEmail] = useState("");
   const [providerId, setProviderId] = useState("");
+  const router = useRouter();
 
   const menuItems = [
     { name: "Home", path: "/home" },
@@ -30,63 +31,42 @@ export default function Header() {
     }
   }, [session, cookieToken]);
 
-  useEffect(() => {
-    console.log("Token:", token);
-    console.log("Email:", email);
-    console.log("Provider ID:", providerId);
-  }, [token, email, providerId]);
+  const [formDataInfo, setFormDataInfo] = useState({
+    email: "",
+    provider: "",
+    providerId: "",
+  });
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!email || !providerId || !token) {
-        console.log("Required data is missing. Skipping fetchData.");
-        return;
-      }
-      try {
-        const url = "http://localhost:8080/api/user/my-info";
+    setFormDataInfo({
+      email: email,
+      provider: providerId ? "GOOGLE" : "",
+      providerId: providerId,
+    });
+  }, [email, providerId]);
 
-        const response = await axios.post(
-          url,
-          {
-            email: email,
-            provider: "GOOGLE",
-            providerId: providerId,
-          },
-          {
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (formDataInfo.email && token) {
+        try {
+          const url = "http://localhost:8080/api/user/my-info";
+
+          const response = await axios.post(url, formDataInfo, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
-        );
+          });
+          const userData = response.data.result.userProfile;
 
-        localStorage.setItem(
-          "user",
-          JSON.stringify(response.data.result.userProfile)
-        );
-        setUserProfile(response.data.result.userProfile);
-      } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu từ API:", error);
+          localStorage.setItem("user", userData);
+          setUserProfile(userData);
+        } catch (error) {
+          console.error("Lỗi khi lấy dữ liệu từ API:", error);
+        }
       }
     };
-    fetchData();
-  }, [email, providerId, token]); // Only run when these values are updated
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const urlGetTag = "http://localhost:8080/api/gallery/tag/get-all";
-
-  //       const response = await axios.get(urlGetTag, {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       });
-  //       localStorage.setItem("tags", JSON.stringify(response.data.result));
-  //     } catch (error) {
-  //       console.error("Lỗi khi lấy dữ liệu từ API:", error);
-  //     }
-  //   };
-  //   fetchData();
-  // }, []);
+    fetchUserData();
+  }, [formDataInfo, token]);
 
   useEffect(() => {
     const toggleOpen = document.getElementById("toggleOpen");
@@ -139,23 +119,26 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      signOut({
-        redirect: true,
-        callbackUrl: "/auth/login",
-      });
+      if (!providerId) {
+        deleteCookie("token");
+        localStorage.removeItem("user"); // Clear user profile
+        router.push("/auth/login");
+      } else {
+        signOut({
+          redirect: true,
+          callbackUrl: "/auth/login",
+        });
+      }
     } catch (error) {
       console.error("Error clearing cookie:", error);
     }
   };
 
   return (
-    <header className="shadow-lg py-4 px-4 sm:px-0 bg-white font-[sans-serif] min-h-[70px] tracking-wide relative z-50">
+    <header className=" top-0 left-0  w-full py-3 bg-white font-[sans-serif] fixed  z-1000">
       <section className="py-2 bg-[#0066ff] text-white text-right px-10">
         <p className="text-sm">
           <strong className="mx-3">Address:</strong>HCM
-          <a className="text-sm text-red-500" onClick={handleLogout}>
-            Logout
-          </a>
           <strong className="mx-3">Contact No:</strong>1800333665
         </p>
       </section>
