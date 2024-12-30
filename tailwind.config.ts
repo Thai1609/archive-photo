@@ -13,9 +13,11 @@ const config: Config = {
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
+      filter: {
+        "sharpen": "contrast(125%) brightness(110%)",
+      },
     },
   },
-  plugins: [],
- 
+  plugins: [require("@tailwindcss/aspect-ratio")],
 };
 export default config;

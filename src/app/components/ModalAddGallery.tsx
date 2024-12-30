@@ -1,20 +1,22 @@
 import axios from "axios";
 import { getCookie } from "cookies-next";
-import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import ModalCreateTag from "./ModalCreateTag";
 
 export default function AddGalleries() {
   const [options, setOptions] = useState<string[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [inputValue, setInputValue] = useState("");
+  const [user, setUser] = useState(Object);
+
+  const cookieToken = getCookie("token");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
       const fileArray = Array.from(files); // Convert FileList to an array
       setSelectedFiles(fileArray);
-
       // Create image previews for all selected files
       const previewArray: string[] = [];
       fileArray.forEach((file) => {
@@ -36,38 +38,31 @@ export default function AddGalleries() {
 
   const dropdownToggle = document.getElementById("dropdownToggle");
   const dropdownMenu = document.getElementById("dropdownMenu");
+  // Handle input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value); // Update search term
+  };
 
   useEffect(() => {
-    // const filtered = options.filter((option) =>
-    //   option.toLowerCase().includes(inputValue.toLowerCase())
-    // );
-    setFilteredOptions(options);
+    const filtered = options.filter((option) =>
+      option.toLowerCase().includes(inputValue.toLowerCase())
+    );
+    setFilteredOptions(filtered);
   }, [options, inputValue]); // Dependency on `options` and `inputValue`
 
-  // Handle input change
-  // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   setInputValue(e.target.value); // Update search term
-  // };
-  const [user, setUser] = useState(null);
+  const userData = localStorage.getItem("user");
+  const tags = localStorage.getItem("tags");
 
   useEffect(() => {
-    // Retrieve user data from localStorage
-    const userData = localStorage.getItem("user");
-    const tags = localStorage.getItem("tags");
- 
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-
-    if (tags) {
+    if (userData && tags) {
       try {
         const parsedTags = JSON.parse(tags);
+        const parsedUser = JSON.parse(userData);
 
-        // Ensure parsedTags is an array before using map
+        setUser(parsedUser);
+
         if (Array.isArray(parsedTags)) {
-          // Extract the list of names from the tags and log it
           const tagNames = parsedTags.map((tagItem) => tagItem.name);
-          console.log("Tags names:", tagNames);
           setOptions(tagNames);
         } else {
           console.error("Tags data is not an array:", parsedTags);
@@ -79,10 +74,9 @@ export default function AddGalleries() {
   }, []);
 
   const handleOptionSelect = (nameTag: string) => {
-    // setInputValue(option);
     setFormData((prevFormData) => ({
       ...prevFormData,
-      nameTag: nameTag, // Set the title to the selected option
+      nameTag: nameTag,
       userId: user.id,
     }));
 
@@ -112,6 +106,7 @@ export default function AddGalleries() {
         ) {
           dropdownMenu.classList.add("hidden");
           dropdownMenu.classList.remove("block");
+          handleOptionSelect("");
         }
       };
 
@@ -155,7 +150,6 @@ export default function AddGalleries() {
 
     try {
       const urlUpload = "http://localhost:8080/api/gallery/upload-image";
-      const cookieToken = getCookie("token");
 
       const response = await axios.post(urlUpload, data, {
         withCredentials: true,
@@ -166,15 +160,14 @@ export default function AddGalleries() {
         },
       });
       window.location.reload();
-      console.log("Response:", response.data);
-      // router.push(`/auth/confirm?email=${encodeURIComponent(email)}`);
     } catch (error) {
       console.error("Upload error:", error);
     }
   };
+
   return (
     <div className="font-sans bg-white">
-      <div className="p-4 lg:max-w-7xl max-w-4xl mx-auto">
+      <div className="pt-20 p-4 lg:max-w-7xl max-w-4xl mx-auto">
         <form onSubmit={handleSubmit} className="">
           <div className="grid items-start grid-cols-1 lg:grid-cols-5 gap-12 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] p-6 rounded-lg">
             <div className="lg:col-span-3 w-full   top-0 text-center">
@@ -237,42 +230,122 @@ export default function AddGalleries() {
               </div>
               <div className="w-64">
                 <label className="mb-2 text-base block">Tag</label>
-                <input
-                  id="dropdownToggle"
-                  type="text"
-                  value={formData.nameTag}
-                  readOnly
-                  placeholder="Select Tag..."
-                  className="px-4 py-2 w-full border border-gray-300 rounded"
-                />
+                <div className="flex items-center space-x-4">
+                  <input
+                    id="dropdownToggle"
+                    type="text"
+                    readOnly
+                    value={formData.nameTag}
+                    placeholder="Select Tag..."
+                    className="px-4 py-2 w-full border border-gray-300 rounded"
+                  />
 
+                  <ModalCreateTag></ModalCreateTag>
+                </div>
                 <ul
                   id="dropdownMenu"
-                  className=" hidden   left-0 right-0 mt-1 bg-white border border-gray-300 rounded max-h-60 overflow-auto z-10"
+                  className="h-64 hidden left-0 right-0 mt-1 bg-white border border-gray-300 rounded max-h-60 overflow-auto z-10"
                 >
-                  {filteredOptions.length > 0 ? (
-                    filteredOptions.map((option, index) => (
-                      <li
-                        key={index}
-                        onClick={() => handleOptionSelect(option)} // Khi nhấn vào một tùy chọn
-                        className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
-                      >
-                        {option}
-                      </li>
-                    ))
-                  ) : (
-                    <li className="px-4 py-2 text-gray-500">
-                      No options found
-                    </li>
-                  )}
+                  <div>
+                    <div className="p-3">
+                      <div className="relative">
+                        <div className="absolute  inset-y-0 rtl:inset-r-0 start-0 flex items-center ps-3 pointer-events-none">
+                          <svg
+                            className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                            />
+                          </svg>
+                        </div>
+                        <input
+                          type="text"
+                          id="input-group-search"
+                          className="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                          placeholder="Search tag"
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                    </div>
+                    <ul
+                      className="h-48 px-3 pb-3  text-sm text-gray-700 dark:text-gray-200"
+                      aria-labelledby="dropdownSearchButton"
+                    >
+                      {filteredOptions.length > 0 ? (
+                        filteredOptions.map((option, index) => (
+                          <li
+                            key={index}
+                            onClick={() => handleOptionSelect(option)} // Khi nhấn vào một tùy chọn
+                            className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                          >
+                            {option}
+                          </li>
+                        ))
+                      ) : (
+                        <li className="px-4 py-2 text-gray-500">
+                          No options found
+                        </li>
+                      )}
+                    </ul>
+                  </div>
                 </ul>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="message"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Description
+                </label>
+                <textarea
+                  id="message"
+                  rows={4}
+                  className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  placeholder="Write your thoughts here..."
+                  defaultValue={""}
+                />
+              </div>
+              <div className="flex items-center">
+                <input
+                  defaultChecked
+                  id="checked-checkbox"
+                  type="checkbox"
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <label
+                  htmlFor="checked-checkbox"
+                  className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                >
+                  Is public
+                </label>
               </div>
               <div className="flex flex-wrap gap-4 mt-8">
                 <button
                   type="submit"
-                  className="min-w-[200px] px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded"
+                  className="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                 >
-                  Add
+                  <svg
+                    className="me-1 -ms-1 w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Add new image
                 </button>
               </div>
             </div>

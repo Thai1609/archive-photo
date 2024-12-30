@@ -13,9 +13,9 @@ export async function middleware(req: NextRequest) {
 
   console.log("token: ", token);
   console.log("tokenGG : ", tokenGG);
-  
+
   if (!token && !tokenGG) {
-    if (pathname !== "/auth/login") {
+    if (pathname !== "/auth/login" && pathname !== "/auth/register") {
       return NextResponse.redirect(new URL("/auth/login", req.url));
     }
   }

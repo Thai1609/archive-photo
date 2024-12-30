@@ -145,7 +145,7 @@ export default function Page({ params }) {
 
   return (
     <div className="font-sans bg-white">
-      <div className="p-4 lg:max-w-8xl max-w-8xl mx-auto">
+      <div className="pt-20 p-4 lg:max-w-7xl max-w-4xl mx-auto">
         {data &&
           (!isEdit ? (
             <>
@@ -156,8 +156,10 @@ export default function Page({ params }) {
                       <div className="lg:h-[500px]">
                         <img
                           src={data.urlImage}
-                          alt=""
-                          className="lg:w-11/12 w-full h-full rounded-md object-cover object-top"
+                          alt="Product"
+                          className="w-full h-full object-cover rounded-t-lg transition-transform duration-300 hover:scale-105 filter contrast-125 brightness-110"
+
+                          // className="lg:w-11/12 w-full h-full rounded-md object-cover object-top"
                         />
                       </div>
                     </div>
@@ -197,16 +199,13 @@ export default function Page({ params }) {
                               className="mr-1"
                               viewBox="0 0 64 64"
                             >
-                              <path
-                                d="M45.5 4A18.53 18.53 0 0 0 32 9.86 18.5 18.5 0 0 0 0 22.5C0 40.92 29.71 59 31 59.71a2 2 0 0 0 2.06 0C34.29 59 64 40.92 64 22.5A18.52 18.52 0 0 0 45.5 4ZM32 55.64C26.83 52.34 4 36.92 4 22.5a14.5 14.5 0 0 1 26.36-8.33 2 2 0 0 0 3.27 0A14.5 14.5 0 0 1 60 22.5c0 14.41-22.83 29.83-28 33.14Z"
-                                data-original="#000000"
-                              />
+                              <path d="M45.5 4A18.53 18.53 0 0 0 32 9.86 18.5 18.5 0 0 0 0 22.5C0 40.92 29.71 59 31 59.71a2 2 0 0 0 2.06 0C34.29 59 64 40.92 64 22.5A18.52 18.52 0 0 0 45.5 4ZM32 55.64C26.83 52.34 4 36.92 4 22.5a14.5 14.5 0 0 1 26.36-8.33 2 2 0 0 0 3.27 0A14.5 14.5 0 0 1 60 22.5c0 14.41-22.83 29.83-28 33.14Z" />
                             </svg>
                             100
                           </button>
                         </div>
                       </div>
-                      <div className=" mt-8">
+                      <div className="mt-8">
                         <h3 className="text-xl font-bold text-gray-800">
                           Description
                         </h3>
@@ -227,18 +226,9 @@ export default function Page({ params }) {
                               viewBox="0 0 24 24"
                             >
                               <g fillRule="evenodd" clipRule="evenodd">
-                                <path
-                                  d="M7 4a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-6a1 1 0 1 1 2 0v6a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5h6a1 1 0 1 1 0 2z"
-                                  data-original="#000000"
-                                />
-                                <path
-                                  d="M19.197 4a.803.803 0 0 0-.567.235l-7.877 7.877-.379 1.514 1.514-.379 7.877-7.877A.803.803 0 0 0 19.197 4zm-1.981-1.18a2.802 2.802 0 1 1 3.963 3.964l-8.073 8.073a1 1 0 0 1-.464.263l-3.4.85a1 1 0 0 1-1.212-1.213l.85-3.399a1 1 0 0 1 .263-.464z"
-                                  data-original="#000000"
-                                />
-                                <path
-                                  d="M15.293 5.293a1 1 0 0 1 1.414 0l2 2a1 1 0 0 1-1.414 1.414l-2-2a1 1 0 0 1 0-1.414z"
-                                  data-original="#000000"
-                                />
+                                <path d="M7 4a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-6a1 1 0 1 1 2 0v6a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5h6a1 1 0 1 1 0 2z" />
+                                <path d="M19.197 4a.803.803 0 0 0-.567.235l-7.877 7.877-.379 1.514 1.514-.379 7.877-7.877A.803.803 0 0 0 19.197 4zm-1.981-1.18a2.802 2.802 0 1 1 3.963 3.964l-8.073 8.073a1 1 0 0 1-.464.263l-3.4.85a1 1 0 0 1-1.212-1.213l.85-3.399a1 1 0 0 1 .263-.464z" />
+                                <path d="M15.293 5.293a1 1 0 0 1 1.414 0l2 2a1 1 0 0 1-1.414 1.414l-2-2a1 1 0 0 1 0-1.414z" />
                               </g>
                             </svg>
                             Edit
@@ -252,14 +242,8 @@ export default function Page({ params }) {
                               className="w-5 fill-red-500 hover:fill-red-700"
                               viewBox="0 0 24 24"
                             >
-                              <path
-                                d="M19 7a1 1 0 0 0-1 1v11.191A1.92 1.92 0 0 1 15.99 21H8.01A1.92 1.92 0 0 1 6 19.191V8a1 1 0 0 0-2 0v11.191A3.918 3.918 0 0 0 8.01 23h7.98A3.918 3.918 0 0 0 20 19.191V8a1 1 0 0 0-1-1Zm1-3h-4V2a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2ZM10 4V3h4v1Z"
-                                data-original="#000000"
-                              />
-                              <path
-                                d="M11 17v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Zm4 0v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Z"
-                                data-original="#000000"
-                              />
+                              <path d="M19 7a1 1 0 0 0-1 1v11.191A1.92 1.92 0 0 1 15.99 21H8.01A1.92 1.92 0 0 1 6 19.191V8a1 1 0 0 0-2 0v11.191A3.918 3.918 0 0 0 8.01 23h7.98A3.918 3.918 0 0 0 20 19.191V8a1 1 0 0 0-1-1Zm1-3h-4V2a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2ZM10 4V3h4v1Z" />
+                              <path d="M11 17v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Zm4 0v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Z" />
                             </svg>
                             Delete
                           </button>
@@ -281,7 +265,7 @@ export default function Page({ params }) {
                       <div className="lg:h-[500px]">
                         <img
                           src={data.urlImage}
-                          alt=""
+                          alt="Product"
                           className="lg:w-11/12 w-full h-full rounded-md object-cover object-top"
                         />
                       </div>
@@ -296,7 +280,6 @@ export default function Page({ params }) {
                             type="text"
                             className="px-4 py-2 text-2xl rounded-md bg-white border border-gray-400 w-full outline-blue-500"
                           />
-
                           <div className="relative w-64">
                             <input
                               id="dropdownToggle"
@@ -307,16 +290,15 @@ export default function Page({ params }) {
                               placeholder="Select Tag..."
                               className="px-4 py-2 w-full border border-gray-300 rounded"
                             />
-
                             <ul
                               id="dropdownMenu"
-                              className=" hidden absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded max-h-60 overflow-auto z-10"
+                              className="hidden absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded max-h-60 overflow-auto z-10"
                             >
                               {filteredOptions.length > 0 ? (
                                 filteredOptions.map((option, index) => (
                                   <li
                                     key={index}
-                                    onClick={() => handleOptionSelect(option)} // Khi nhấn vào một tùy chọn
+                                    onClick={() => handleOptionSelect(option)}
                                     className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
                                   >
                                     {option}
@@ -356,16 +338,13 @@ export default function Page({ params }) {
                               className="mr-1"
                               viewBox="0 0 64 64"
                             >
-                              <path
-                                d="M45.5 4A18.53 18.53 0 0 0 32 9.86 18.5 18.5 0 0 0 0 22.5C0 40.92 29.71 59 31 59.71a2 2 0 0 0 2.06 0C34.29 59 64 40.92 64 22.5A18.52 18.52 0 0 0 45.5 4ZM32 55.64C26.83 52.34 4 36.92 4 22.5a14.5 14.5 0 0 1 26.36-8.33 2 2 0 0 0 3.27 0A14.5 14.5 0 0 1 60 22.5c0 14.41-22.83 29.83-28 33.14Z"
-                                data-original="#000000"
-                              />
+                              <path d="M45.5 4A18.53 18.53 0 0 0 32 9.86 18.5 18.5 0 0 0 0 22.5C0 40.92 29.71 59 31 59.71a2 2 0 0 0 2.06 0C34.29 59 64 40.92 64 22.5A18.52 18.52 0 0 0 45.5 4ZM32 55.64C26.83 52.34 4 36.92 4 22.5a14.5 14.5 0 0 1 26.36-8.33 2 2 0 0 0 3.27 0A14.5 14.5 0 0 1 60 22.5c0 14.41-22.83 29.83-28 33.14Z" />
                             </svg>
                             100
                           </button>
                         </div>
                       </div>
-                      <div className=" mt-8">
+                      <div className="mt-8">
                         <h3 className="text-xl font-bold text-gray-800">
                           Description
                         </h3>
@@ -384,26 +363,6 @@ export default function Page({ params }) {
                             onClick={handleSaveImage}
                             className="min-w-[200px] px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded"
                           >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="w-4 fill-current mr-2"
-                              viewBox="0 0 24 24"
-                            >
-                              <g fillRule="evenodd" clipRule="evenodd">
-                                <path
-                                  d="M7 4a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-6a1 1 0 1 1 2 0v6a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5h6a1 1 0 1 1 0 2z"
-                                  data-original="#000000"
-                                />
-                                <path
-                                  d="M19.197 4a.803.803 0 0 0-.567.235l-7.877 7.877-.379 1.514 1.514-.379 7.877-7.877A.803.803 0 0 0 19.197 4zm-1.981-1.18a2.802 2.802 0 1 1 3.963 3.964l-8.073 8.073a1 1 0 0 1-.464.263l-3.4.85a1 1 0 0 1-1.212-1.213l.85-3.399a1 1 0 0 1 .263-.464z"
-                                  data-original="#000000"
-                                />
-                                <path
-                                  d="M15.293 5.293a1 1 0 0 1 1.414 0l2 2a1 1 0 0 1-1.414 1.414l-2-2a1 1 0 0 1 0-1.414z"
-                                  data-original="#000000"
-                                />
-                              </g>
-                            </svg>
                             Save
                           </button>
                           <button
@@ -411,20 +370,6 @@ export default function Page({ params }) {
                             onClick={handleCancel}
                             className="min-w-[200px] px-4 py-2.5 border border-blue-600 bg-transparent hover:bg-gray-50 text-gray-800 text-sm font-semibold rounded"
                           >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="w-5 fill-red-500 hover:fill-red-700"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M19 7a1 1 0 0 0-1 1v11.191A1.92 1.92 0 0 1 15.99 21H8.01A1.92 1.92 0 0 1 6 19.191V8a1 1 0 0 0-2 0v11.191A3.918 3.918 0 0 0 8.01 23h7.98A3.918 3.918 0 0 0 20 19.191V8a1 1 0 0 0-1-1Zm1-3h-4V2a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2ZM10 4V3h4v1Z"
-                                data-original="#000000"
-                              />
-                              <path
-                                d="M11 17v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Zm4 0v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Z"
-                                data-original="#000000"
-                              />
-                            </svg>
                             Cancel
                           </button>
                         </div>
