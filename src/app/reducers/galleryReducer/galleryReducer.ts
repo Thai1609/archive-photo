@@ -8,15 +8,8 @@ export const GALLERY_ACTIONS = {
   SET_PAGE: "SET_PAGE", // If pagination is needed
 } as const;
 
-export type Gallery = {
-  id: number;
-  nameImage: string;
-  urlImage: string;
-  status: number;
-};
-
 export interface InitialGalleryState {
-  galleries: Gallery[];
+  galleries: Image[];
   isLoading: boolean;
   isError: boolean;
   totalPages: number;
@@ -37,9 +30,9 @@ type GalleryAction =
   | { type: typeof GALLERY_ACTIONS.FETCH_INIT }
   | {
       type: typeof GALLERY_ACTIONS.FETCH_SUCCESS;
-      payload: { galleries: Gallery[]; totalPages: number };
+      payload: { galleries: Image[]; totalPages: number };
     }
-  | { type: typeof GALLERY_ACTIONS.ADD_GALLERY_SUCCESS; payload: Gallery }
+  | { type: typeof GALLERY_ACTIONS.ADD_GALLERY_SUCCESS; payload: Image }
   | {
       type: typeof GALLERY_ACTIONS.REMOVE_GALLERY_SUCCESS;
       payload: { id: number };

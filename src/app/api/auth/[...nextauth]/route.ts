@@ -1,4 +1,5 @@
 import axios from "axios";
+import { setCookie } from "cookies-next";
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
@@ -47,6 +48,9 @@ export const authOptions = {
       session.backendToken = token.backendToken;
       session.user.sub = token.sub;
 
+      setCookie("token", session.backendToken, {
+        maxAge: 60 * 10,
+      });
       return session;
     },
   },

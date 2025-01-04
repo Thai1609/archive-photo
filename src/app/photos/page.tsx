@@ -5,56 +5,60 @@ import galleryReducer, {
 } from "@/app/reducers/galleryReducer/galleryReducer";
 import axios from "axios";
 import { getCookie } from "cookies-next";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useReducer, useState } from "react";
 
 export default function HomePage() {
   const router = useRouter();
-
-  const url = "http://localhost:8080/api/gallery/get-all";
   const cookieToken = getCookie("token");
 
   const [state, dispatch] = useReducer(galleryReducer, initialGalleryState);
   const { galleries, currentPage, pageSize, totalPages, isLoading, isError } =
     state;
 
+  const [token, setToken] = useState("");
+  const { data: session } = useSession();
+
   useEffect(() => {
-    console.log("data: ", galleries);
-    console.log("totalPages: ", totalPages);
+    if (session?.backendToken) {
+      setToken(session.backendToken);
+    } else if (cookieToken) {
+      setToken(cookieToken);
+    }
+  }, [session, cookieToken]);
 
-    let isMounted = true; // Prevent updates if component unmounts
+  const url = "http://localhost:8080/api/gallery/get-all";
 
+  useEffect(() => {
     const fetchGalleryData = async () => {
-      dispatch({ type: GALLERY_ACTIONS.FETCH_INIT });
+      if (token) {
+        dispatch({ type: GALLERY_ACTIONS.FETCH_INIT });
+        try {
+          const response = await axios.get(url, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            params: { page: currentPage - 1, size: pageSize }, // Sử dụng tham số page và size
+          });
+          console.log("data all gallery is public:", response.data);
 
-      try {
-        const response = await axios.get(url, {
-          headers: {
-            Authorization: `Bearer ${cookieToken}`,
-          },
-          params: { page: currentPage - 1, size: pageSize }, // Sử dụng tham số page và size
-        });
+          const { content, totalPages } = response.data;
 
-        const { content, totalPages } = response.data;
-        if (isMounted) {
           dispatch({
             type: GALLERY_ACTIONS.FETCH_SUCCESS,
             payload: { galleries: content, totalPages },
           });
-        }
-      } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu từ API:", error);
-        if (isMounted) {
+        } catch (error) {
+          console.error("Lỗi khi lấy dữ liệu từ API:", error);
+
           dispatch({ type: GALLERY_ACTIONS.FETCH_ERROR });
         }
       }
     };
 
     fetchGalleryData();
-    return () => {
-      isMounted = false; // Cleanup to prevent state updates after unmounting
-    };
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, token]);
 
   // Hàm chuyển đến trang trước
   const handlePrevPage = () => {
@@ -78,13 +82,13 @@ export default function HomePage() {
     dispatch({ type: GALLERY_ACTIONS.SET_PAGE, payload: pageNumber });
   };
 
-  const handleNextPageById = (index: number) => {
-    router.push(`/home/galleries/${index}`);
+  const handleNextPageByOptions = (id: number) => {
+    router.push(`/photos/galleries/${id}`);
   };
 
   return (
     <>
-      <div className="bg-white font-[sans-serif] pt-20 mb-12">
+      <div className="bg-black font-[sans-serif] pt-20 mb-12">
         <div className="overflow-x-auto font-[sans-serif]">
           <div className="font-sans py-2 mx-auto lg:max-w-6xl md:max-w-4xl max-sm:max-w-md">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
@@ -92,7 +96,7 @@ export default function HomePage() {
                 galleries.map((item, index) => (
                   <div
                     key={index}
-                    onClick={() => handleNextPageById(item.id)}
+                    onClick={() => handleNextPageByOptions(item.id)}
                     className="bg-white flex flex-col rounded-lg cursor-pointer shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
                   >
                     {/* Image Container */}

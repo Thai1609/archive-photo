@@ -1,7 +1,12 @@
 import axios from "axios";
 import { getCookie } from "cookies-next";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import ModalCreateTag from "./ModalCreateTag";
+import tagReducer, {
+  initialTagState,
+  TAG_ACTIONS,
+} from "../reducers/tagReducer/tagReducer";
+import ModalDeleteTag from "./ModalDeleteTag";
 
 export default function AddGalleries() {
   const [options, setOptions] = useState<string[]>([]);
@@ -23,7 +28,6 @@ export default function AddGalleries() {
         const reader = new FileReader();
         reader.onloadend = () => {
           previewArray.push(reader.result as string);
-
           // Update the image previews state after all files are processed
           if (previewArray.length === fileArray.length) {
             setImagePreviews(previewArray);
@@ -44,34 +48,65 @@ export default function AddGalleries() {
   };
 
   useEffect(() => {
-    const filtered = options.filter((option) =>
-      option.toLowerCase().includes(inputValue.toLowerCase())
+    const filtered = options.filter(
+      (option) =>
+        typeof option === "string" &&
+        option.toLowerCase().includes(inputValue.toLowerCase())
     );
     setFilteredOptions(filtered);
-  }, [options, inputValue]); // Dependency on `options` and `inputValue`
+  }, [options, inputValue]);
 
   const userData = localStorage.getItem("user");
-  const tags = localStorage.getItem("tags");
-
   useEffect(() => {
-    if (userData && tags) {
+    if (userData) {
       try {
-        const parsedTags = JSON.parse(tags);
         const parsedUser = JSON.parse(userData);
-
         setUser(parsedUser);
-
-        if (Array.isArray(parsedTags)) {
-          const tagNames = parsedTags.map((tagItem) => tagItem.name);
-          setOptions(tagNames);
-        } else {
-          console.error("Tags data is not an array:", parsedTags);
-        }
       } catch (error) {
         console.error("Failed to parse tags from localStorage:", error);
       }
     }
   }, []);
+  //Tag
+  const urlTags = "http://localhost:8080/api/gallery/tag/get-all";
+  const [stateTag, dispatch] = useReducer(tagReducer, initialTagState);
+
+  useEffect(() => {
+    const fetchDataTag = async () => {
+      dispatch({ type: TAG_ACTIONS.LOADING, payload: true }); // Set loading to true
+
+      try {
+        const response = await axios.get(urlTags, {
+          headers: {
+            Authorization: `Bearer ${cookieToken}`,
+          },
+          params: { userId: user.id },
+        });
+        dispatch({
+          type: TAG_ACTIONS.FETCH_TAGS,
+          payload: response.data.result,
+        });
+      } catch (error) {
+        dispatch({ type: TAG_ACTIONS.ERROR, payload: "Failed to fetch tags" });
+      }
+    };
+
+    if (user && user.id) {
+      fetchDataTag();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (stateTag && stateTag.tags && stateTag.tags.length > 0) {
+      try {
+        const tagNames = stateTag.tags.map((tagItem) => tagItem.name);
+        console.error("Data tags:", tagNames);
+        setOptions(tagNames);
+      } catch (error) {
+        console.error("Set data tag to option", error);
+      }
+    }
+  }, [stateTag]);
 
   const handleOptionSelect = (nameTag: string) => {
     setFormData((prevFormData) => ({
@@ -80,10 +115,10 @@ export default function AddGalleries() {
       userId: user.id,
     }));
 
-    if (dropdownToggle && dropdownMenu) {
-      dropdownMenu.classList.add("hidden");
-      dropdownMenu.classList.remove("block");
-    }
+    // if (dropdownToggle && dropdownMenu) {
+    //   dropdownMenu.classList.add("hidden");
+    //   dropdownMenu.classList.remove("block");
+    // }
   };
 
   useEffect(() => {
@@ -95,6 +130,7 @@ export default function AddGalleries() {
         } else {
           dropdownMenu.classList.add("block");
           dropdownMenu.classList.remove("hidden");
+          handleOptionSelect("");
         }
       };
 
@@ -106,7 +142,6 @@ export default function AddGalleries() {
         ) {
           dropdownMenu.classList.add("hidden");
           dropdownMenu.classList.remove("block");
-          handleOptionSelect("");
         }
       };
 
@@ -121,15 +156,29 @@ export default function AddGalleries() {
   });
 
   const [formData, setFormData] = useState({
-    nameImage: "",
     nameTag: "",
+    status: "",
     userId: "",
   });
+
+  const [isUpload, setIsUpload] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
+
+  const handleCheckboxChange = (e: { target: { checked: any; }; }) => {
+    const checked = e.target.checked;
+
+    setIsChecked(checked);
+
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      status: checked ? "public" : "", // If checked, set status to 'public', else clear it
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedFiles) {
+    if (selectedFiles.length <= 0) {
       alert("Please select a file first!");
       return;
     }
@@ -145,10 +194,9 @@ export default function AddGalleries() {
       new Blob([JSON.stringify(formData)], { type: "application/json" })
     ); // append JSON
 
-    data.getAll("file").forEach((file) => console.log("File:", file));
-    console.log("Request:", data.get("request"));
-
     try {
+      setIsUpload(true);
+
       const urlUpload = "http://localhost:8080/api/gallery/upload-image";
 
       const response = await axios.post(urlUpload, data, {
@@ -160,15 +208,53 @@ export default function AddGalleries() {
         },
       });
       window.location.reload();
+      setIsUpload(false);
     } catch (error) {
       console.error("Upload error:", error);
+      setIsUpload(false);
     }
   };
 
+  const [showModal, setShowModal] = useState(false);
+  const [selectedTag, setSelectedTag] = useState(String); // Store the tag name to delete
+
+  const removeTag = async (name: string) => {
+    console.error("removing tag:", name);
+    try {
+      const urlUpload = "http://localhost:8080/api/gallery/tag/delete";
+
+      const response = await axios.delete(urlUpload, {
+        headers: {
+          Authorization: `Bearer ${cookieToken}`,
+        },
+        params: { nameTag: name },
+      });
+      dispatch({ type: TAG_ACTIONS.LOADING, payload: true });
+      dispatch({ type: TAG_ACTIONS.REMOVE_TAG, payload: name });
+      window.location.reload();
+    } catch (error) {
+      console.error("Error removing tag:", error);
+    }
+  };
+  const handleDeleteTag = (name: string) => {
+    setSelectedTag(name); // Set the tag to be deleted
+    setShowModal(true); // Show the modal for confirmation
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedTag) {
+      removeTag(selectedTag); // Proceed with the deletion
+    }
+    setShowModal(false); // Close the modal after confirmation
+  };
+
+  const handleCancelDelete = () => {
+    setShowModal(false); // Close the modal if canceled
+  };
   return (
     <div className="font-sans bg-white">
       <div className="pt-20 p-4 lg:max-w-7xl max-w-4xl mx-auto">
-        <form onSubmit={handleSubmit} className="">
+        <form onSubmit={handleSubmit}>
           <div className="grid items-start grid-cols-1 lg:grid-cols-5 gap-12 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] p-6 rounded-lg">
             <div className="lg:col-span-3 w-full   top-0 text-center">
               <div className="px-4 py-10 rounded-lg shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)]  ">
@@ -212,22 +298,6 @@ export default function AddGalleries() {
               </div>
             </div>
             <div className="lg:col-span-2">
-              <div className="flex space-x-2 mt-4">
-                <div className="flex flex-col justify-center max-w-lg ml-1  space-y-6 font-[sans-serif] text-[#333]">
-                  <div>
-                    <label className="mb-2 text-base block">Name Image</label>
-                    <input
-                      type="text"
-                      placeholder="Name Image Input"
-                      value={formData.nameImage}
-                      onChange={(e) =>
-                        setFormData({ ...formData, nameImage: e.target.value })
-                      }
-                      className="w-64 px-4 py-2 text-base rounded-md bg-white border border-gray-400  outline-blue-500"
-                    />
-                  </div>
-                </div>
-              </div>
               <div className="w-64">
                 <label className="mb-2 text-base block">Tag</label>
                 <div className="flex items-center space-x-4">
@@ -286,7 +356,14 @@ export default function AddGalleries() {
                             onClick={() => handleOptionSelect(option)} // Khi nhấn vào một tùy chọn
                             className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
                           >
-                            {option}
+                            <span>{option}</span>
+
+                            <a
+                              onClick={() => handleDeleteTag(option)}
+                              className="text-red-500 hover:text-red-700 ml-2 float-right"
+                            >
+                              X
+                            </a>
                           </li>
                         ))
                       ) : (
@@ -295,11 +372,17 @@ export default function AddGalleries() {
                         </li>
                       )}
                     </ul>
+                    <ModalDeleteTag
+                      show={showModal}
+                      onConfirm={handleConfirmDelete}
+                      onCancel={handleCancelDelete}
+                      tagName={selectedTag} // Pass the tag name to the modal
+                    />
                   </div>
                 </ul>
               </div>
 
-              <div>
+              <div className="mt-3">
                 <label
                   htmlFor="message"
                   className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -314,12 +397,13 @@ export default function AddGalleries() {
                   defaultValue={""}
                 />
               </div>
-              <div className="flex items-center">
+              <div className="mt-3 flex items-center">
                 <input
-                  defaultChecked
                   id="checked-checkbox"
                   type="checkbox"
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  checked={isChecked}
+                  onChange={handleCheckboxChange}
                 />
                 <label
                   htmlFor="checked-checkbox"
@@ -329,24 +413,51 @@ export default function AddGalleries() {
                 </label>
               </div>
               <div className="flex flex-wrap gap-4 mt-8">
-                <button
-                  type="submit"
-                  className="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                >
-                  <svg
-                    className="me-1 -ms-1 w-5 h-5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg"
+                {isUpload ? (
+                  <button
+                    disabled
+                    type="button"
+                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 inline-flex items-center"
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Add new image
-                </button>
+                    <svg
+                      aria-hidden="true"
+                      role="status"
+                      className="inline w-4 h-4 me-3 text-white animate-spin"
+                      viewBox="0 0 100 101"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                        fill="#E5E7EB"
+                      />
+                      <path
+                        d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                    Loading...
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    className="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  >
+                    <svg
+                      className="me-1 -ms-1 w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Add new image
+                  </button>
+                )}
               </div>
             </div>
           </div>

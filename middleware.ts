@@ -14,15 +14,15 @@ export async function middleware(req: NextRequest) {
   console.log("token: ", token);
   console.log("tokenGG : ", tokenGG);
 
-  if (!token && !tokenGG) {
-    if (pathname !== "/auth/login" && pathname !== "/auth/register") {
-      return NextResponse.redirect(new URL("/auth/login", req.url));
-    }
-  }
+  // if (!token && !tokenGG) {
+  //   if (pathname !== "/auth/login" && pathname !== "/auth/register") {
+  //     return NextResponse.redirect(new URL("/auth/login", req.url));
+  //   }
+  // }
 
-  if (token && tokenGG && pathname === "/auth/login") {
-    return NextResponse.redirect(new URL("/home", req.url));
-  }
+  // if (token && tokenGG) {
+  //   return NextResponse.redirect(new URL("/photos", req.url));
+  // }
 
   return NextResponse.next();
 }

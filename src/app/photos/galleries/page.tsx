@@ -4,6 +4,10 @@ import galleryReducer, {
   GALLERY_ACTIONS,
   initialGalleryState,
 } from "@/app/reducers/galleryReducer/galleryReducer";
+import tagReducer, {
+  TAG_ACTIONS,
+  initialTagState,
+} from "@/app/reducers/tagReducer/tagReducer";
 
 import axios from "axios";
 import { getCookie } from "cookies-next";
@@ -13,12 +17,11 @@ import React, { useEffect, useReducer, useState } from "react";
 export default function page() {
   const router = useRouter();
   const cookieToken = getCookie("token");
-
-  const urlGalleries = "http://localhost:8080/api/gallery/my-gallery";
-
   const [user, setUser] = useState(Object);
 
   //Gallery
+  const urlGalleries = "http://localhost:8080/api/gallery/my-gallery";
+
   const [stateGallery, dispatchGallery] = useReducer(
     galleryReducer,
     initialGalleryState
@@ -28,7 +31,6 @@ export default function page() {
   useEffect(() => {
     const userData = localStorage.getItem("user");
 
-    let isMounted = true;
     const fetchData = async () => {
       dispatchGallery({ type: GALLERY_ACTIONS.FETCH_INIT });
 
@@ -49,54 +51,26 @@ export default function page() {
           });
 
           const { content, totalPages } = response.data;
-          if (isMounted) {
-            if (Array.isArray(content)) {
-              dispatchGallery({
-                type: GALLERY_ACTIONS.FETCH_SUCCESS,
-                payload: { galleries: content, totalPages },
-              });
-            } else {
-              console.warn("Unexpected API response format:", response.data);
-              dispatchGallery({ type: GALLERY_ACTIONS.FETCH_ERROR });
-            }
+
+          if (Array.isArray(content)) {
+            dispatchGallery({
+              type: GALLERY_ACTIONS.FETCH_SUCCESS,
+              payload: { galleries: content, totalPages },
+            });
+          } else {
+            console.warn("Unexpected API response format:", response.data);
+            dispatchGallery({ type: GALLERY_ACTIONS.FETCH_ERROR });
           }
         }
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu từ API:", error);
-        if (isMounted) {
-          dispatchGallery({ type: GALLERY_ACTIONS.FETCH_ERROR });
-        }
+        dispatchGallery({ type: GALLERY_ACTIONS.FETCH_ERROR });
       }
     };
 
     fetchData();
-    return () => {
-      isMounted = false; // Cleanup to prevent state updates after unmounting
-    };
   }, [currentPage, pageSize]);
 
-  const urlTags = "http://localhost:8080/api/gallery/tag/get-all";
-
-  //Tag
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(urlTags, {
-          headers: {
-            Authorization: `Bearer ${cookieToken}`,
-          },
-          params: { userId: user.id },
-        });
-        const tags = response.data.result;
-        localStorage.setItem("tags", JSON.stringify(tags));
-        
-      } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu từ API:", error);
-      }
-    };
-
-    fetchData();
-  }, [user]);
   const handlePrevPage = () => {
     if (currentPage > 1) {
       // currentPage == currentPage - 1;
@@ -123,15 +97,14 @@ export default function page() {
     dispatchGallery({ type: GALLERY_ACTIONS.SET_PAGE, payload: pageNumber });
   };
 
-  // href={`/products/${product.id}`}
-  const handleNextPageById = (index: number) => {
-    router.push(`/home/galleries/${index}`);
+  const handleNextPageByOptions = (id: number) => {
+    router.push(`/photos/galleries/${id}`);
   };
   return (
     <>
       <AddGalleries></AddGalleries>
 
-      <div className="bg-white font-[sans-serif] my-4">
+      <div className="bg-black font-[sans-serif] my-4">
         <div className="max-w-6xl mx-auto">
           <div className="overflow-x-auto font-[sans-serif]">
             <div className="font-sans py-4 mx-auto lg:max-w-6xl md:max-w-4xl max-sm:max-w-md">
@@ -146,7 +119,7 @@ export default function page() {
                   galleries.map((item, index) => (
                     <div
                       key={index}
-                      onClick={() => handleNextPageById(item.id)}
+                      onClick={() => handleNextPageByOptions(item.id)}
                       className="bg-white flex flex-col rounded-lg cursor-pointer shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
                     >
                       {/* Image Container */}

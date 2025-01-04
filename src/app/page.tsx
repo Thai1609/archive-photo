@@ -10,7 +10,7 @@ export default function Home() {
 
   useEffect(() => {
     if (session) {
-      router.push("/home");
+      router.push("/photos");
     }
   }, [session]);
 

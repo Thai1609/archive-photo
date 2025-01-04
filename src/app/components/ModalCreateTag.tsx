@@ -1,9 +1,14 @@
 import axios from "axios";
 import { getCookie } from "cookies-next";
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
+import tagReducer, {
+  TAG_ACTIONS,
+  initialTagState,
+} from "../reducers/tagReducer/tagReducer";
 
 const ProductModal = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [state, dispatch] = useReducer(tagReducer, initialTagState);
 
   // Hàm mở modal
   const openModal = () => {
@@ -53,16 +58,15 @@ const ProductModal = () => {
     e.preventDefault(); // Prevent the default form submission
     try {
       const response = await axios.post(url, formData, {
-        withCredentials: true,
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${cookieToken}`,
         },
       });
+      dispatch({ type: TAG_ACTIONS.ADD_TAG, payload: response.data });
       window.location.reload();
       setIsModalOpen(false);
     } catch (error) {
-      console.error("Create tag error:", error);
+      dispatch({ type: TAG_ACTIONS.ERROR, payload: "Failed to add tag" });
     }
   };
 

@@ -48,9 +48,9 @@ export default function LoginPage() {
 
       if (response.data.result.authenticated) {
         setCookie("token", response.data.result.token, {
-          maxAge: 60*10,
+          maxAge: 60 * 10,
         });
-        router.push("/home");
+        router.push("/photos");
       }
     } catch (error) {
       console.error("login error:", error.response?.data || error.message);
