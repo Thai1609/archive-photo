@@ -23,7 +23,7 @@ export const initialGalleryState: InitialGalleryState = {
   isError: false,
   totalPages: 1,
   currentPage: 1,
-  pageSize: 100,
+  pageSize: 20,
 };
 
 type GalleryAction =

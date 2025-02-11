@@ -1,33 +1,20 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { setCookie } from "cookies-next";
-import axios from "axios";
-import ModalForgotPassword from "@/app/components/ModalForgotPassword";
+import ModalForgotPassword from "@/components/ModalForgotPassword";
 import "react-toastify/dist/ReactToastify.css";
-import { toast } from "react-toastify";
 import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
   //Open modal confirm email
   const [isModalOpen, setIsModalOpen] = useState(false);
   const closeModal = () => setIsModalOpen(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const router = useRouter();
 
-  const url = "http://localhost:8080/api/auth/login";
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
-  const handleChange = (e: { target: { name: any; value: any } }) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
   const handleForgotPassword = () => {
     setIsModalOpen(true);
   };
@@ -38,23 +25,18 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault(); // Prevent the default form submission
-    try {
-      const response = await axios.post(url, formData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      });
+    setError("");
 
-      if (response.data.result.authenticated) {
-        setCookie("token", response.data.result.token, {
-          maxAge: 60 * 10,
-        });
-        router.push("/photos");
-      }
-    } catch (error) {
-      console.error("login error:", error.response?.data || error.message);
-      toast.error(JSON.stringify(error.response.data.message));
+    const response = await signIn("credentials", {
+      email,
+      password,
+      redirect: false, // ✅ Không tự động chuyển hướng
+    });
+
+    if (response?.error) {
+      setError("Email hoặc mật khẩu không đúng!");
+    } else {
+      router.push("/photos"); // ✅ Chuyển hướng đến trang chính sau khi đăng nhập
     }
   };
 
@@ -84,8 +66,8 @@ export default function LoginPage() {
                   <input
                     name="email"
                     type="email"
-                    value={formData.email}
-                    onChange={handleChange}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                     className="w-full text-gray-800 text-sm border-b border-gray-300 focus:border-blue-600 px-2 py-3 outline-none"
                     placeholder="Enter email"
@@ -130,8 +112,8 @@ export default function LoginPage() {
                   <input
                     name="password"
                     type="password"
-                    value={formData.password}
-                    onChange={handleChange}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     required
                     className="w-full text-gray-800 text-sm border-b border-gray-300 focus:border-blue-600 px-2 py-3 outline-none"
                     placeholder="Enter password"

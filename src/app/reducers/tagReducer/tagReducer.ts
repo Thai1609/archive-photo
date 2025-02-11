@@ -8,6 +8,7 @@ export const TAG_ACTIONS = {
 } as const;
 
 export type Tag = {
+  name: any;
   id: number;
   nameTag: string;
   description: string;

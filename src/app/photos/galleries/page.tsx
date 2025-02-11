@@ -1,13 +1,9 @@
 "use client";
-import AddGalleries from "@/app/components/ModalAddGallery";
+import AddGalleries from "@/components/ModalAddGallery";
 import galleryReducer, {
   GALLERY_ACTIONS,
   initialGalleryState,
 } from "@/app/reducers/galleryReducer/galleryReducer";
-import tagReducer, {
-  TAG_ACTIONS,
-  initialTagState,
-} from "@/app/reducers/tagReducer/tagReducer";
 
 import axios from "axios";
 import { getCookie } from "cookies-next";
@@ -104,7 +100,7 @@ export default function page() {
     <>
       <AddGalleries></AddGalleries>
 
-      <div className="bg-black font-[sans-serif] my-4">
+      <div className="bg-black font-[sans-serif]">
         <div className="max-w-6xl mx-auto">
           <div className="overflow-x-auto font-[sans-serif]">
             <div className="font-sans py-4 mx-auto lg:max-w-6xl md:max-w-4xl max-sm:max-w-md">
@@ -119,13 +115,13 @@ export default function page() {
                   galleries.map((item, index) => (
                     <div
                       key={index}
-                      onClick={() => handleNextPageByOptions(item.id)}
                       className="bg-white flex flex-col rounded-lg cursor-pointer shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
                     >
                       {/* Image Container */}
                       <div className="relative">
                         <img
                           src={item.urlImage}
+                          onClick={() => handleNextPageByOptions(item.id)}
                           alt="Product"
                           className="w-full h-36 object-cover rounded-t-lg transition-transform duration-300 hover:scale-105"
                         />

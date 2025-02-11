@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
 import axios from "axios";
-import ModalCreateUser from "@/app/components/ModalCreateUser";
+import ModalCreateUser from "@/components/ModalCreateUser";
 
 export default function RegisterPage() {
   // const router = useRouter();

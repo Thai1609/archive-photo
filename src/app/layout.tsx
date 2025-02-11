@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
-import SessionProviderWrapper from "../../pages/SessionProviderWrapper";
+import Providers from "./providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,7 +24,7 @@ export default function RootLayout({
           autoClose={1000}
           position="top-right"
         ></ToastContainer>
-        <SessionProviderWrapper> {children}</SessionProviderWrapper>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

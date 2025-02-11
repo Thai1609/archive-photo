@@ -4,7 +4,7 @@ import { useEffect, useReducer, useState } from "react";
 import tagReducer, {
   TAG_ACTIONS,
   initialTagState,
-} from "../reducers/tagReducer/tagReducer";
+} from "../app/reducers/tagReducer/tagReducer";
 
 const ProductModal = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);

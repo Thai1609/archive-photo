@@ -1,9 +1,10 @@
 interface UserProfile {
+  id: any;
   firstName: string;
 
   lastName: string;
 
-  image: string;
+  avatarUrl: string;
 
   address: string;
 

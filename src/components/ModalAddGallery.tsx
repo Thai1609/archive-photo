@@ -5,7 +5,7 @@ import ModalCreateTag from "./ModalCreateTag";
 import tagReducer, {
   initialTagState,
   TAG_ACTIONS,
-} from "../reducers/tagReducer/tagReducer";
+} from "../app/reducers/tagReducer/tagReducer";
 import ModalDeleteTag from "./ModalDeleteTag";
 
 export default function AddGalleries() {
@@ -164,7 +164,7 @@ export default function AddGalleries() {
   const [isUpload, setIsUpload] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
 
-  const handleCheckboxChange = (e: { target: { checked: any; }; }) => {
+  const handleCheckboxChange = (e: { target: { checked: any } }) => {
     const checked = e.target.checked;
 
     setIsChecked(checked);
