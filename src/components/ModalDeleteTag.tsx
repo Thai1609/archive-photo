@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 
 const ModalDeleteTag = ({ show, onConfirm, onCancel, tagName }) => {
-  console.log("Show: ", show);
   if (!show) return null; // If show is false, don't render the modal.
 
   return (

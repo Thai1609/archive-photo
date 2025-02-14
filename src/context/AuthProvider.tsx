@@ -7,6 +7,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -30,74 +31,73 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [providerId, setProviderId] = useState("");
 
   const { data: session } = useSession();
-  const cookieToken = getCookie("token");
 
   // ✅ Update token state after session or cookies change
   useEffect(() => {
-   
+    console.log("✅ session:", session);
 
     if (session?.backendToken) {
       setToken(session.backendToken);
       setProviderId(session.user?.sub);
-    } else if (cookieToken) {
-      setToken(cookieToken);
     }
     // ✅ Load email from session
     if (session?.user?.email) {
       setEmail(session.user.email);
     }
-  }, [session, cookieToken]);
+  }, [session]);
 
-  // ✅ Ensure token is available before calling API
+  // ✅ Fetch user profile only when needed
   const fetchUserProfile = useCallback(async () => {
-    if (!token || userProfile) return;
+    if (!token || userProfile) return; // Prevent redundant calls
 
     try {
-      const formDataInfo = {
+      const formInforUser = {
         email,
         provider: providerId ? "GOOGLE" : null,
         providerId: providerId,
       };
 
-      const response = await axios.post(userProfileUrl, formDataInfo, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await axios.post(userProfileUrl, formInforUser, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("🔍 API Response:", response.data); // ✅ Debug response
 
       if (response.data?.result?.userProfile) {
         const userData = response.data.result.userProfile;
         localStorage.setItem("user", JSON.stringify(userData));
         setUserProfile(userData);
-        console.log("User info fetched:", userData);
       }
     } catch (error) {
-      console.error("Error fetching user profile:", error);
+      console.error("❌ Error fetching user profile:", error);
     }
-  }, [token, email, providerId]);
+  }, [token, email, providerId, userProfile]);
 
-  // ✅ Fetch user profile only when token is available
+  // ✅ Fetch user profile when token changes
   useEffect(() => {
-    if (token) {
-      fetchUserProfile();
-    }
-  }, [token, fetchUserProfile]);
+    fetchUserProfile();
+  }, [fetchUserProfile]);
 
   // ✅ Logout function
   const logout = useCallback(() => {
     setUserProfile(null);
-    setToken(null);
-    setEmail("");
-    deleteCookie("token"); // ✅ Remove token
-    localStorage.removeItem("user"); // ✅ Clear user info from localStorage
-    signOut({ callbackUrl: "/auth/login" });
+    deleteCookie("token");
+    localStorage.setItem("user", "null");
+    localStorage.removeItem("user");
+    signOut({ callbackUrl: "/auth/account" });
   }, []);
 
+  // ✅ Memoize context value to avoid unnecessary re-renders
+  const authContextValue = useMemo(
+    () => ({
+      userProfile,
+      fetchUserProfile,
+      login: setCookie,
+      logout,
+    }),
+    [userProfile, fetchUserProfile, logout]
+  );
+
   return (
-    <AuthContext.Provider
-      value={{ userProfile, fetchUserProfile, login: setCookie, logout }}
-    >
+    <AuthContext.Provider value={authContextValue}>
       {children}
     </AuthContext.Provider>
   );

@@ -9,11 +9,26 @@ import axios from "axios";
 import { getCookie } from "cookies-next";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useReducer, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useAuth } from "@/context/AuthProvider";
 
-export default function page() {
+export default function GalleryPage() {
   const router = useRouter();
+  const [token, setToken] = useState<string | null>(null);
+
+  const { data: session } = useSession();
   const cookieToken = getCookie("token");
-  const [user, setUser] = useState(Object);
+
+  const { userProfile } = useAuth();
+
+  // ✅ Update token state after session or cookies change
+  useEffect(() => {
+    if (session?.backendToken) {
+      setToken(session.backendToken);
+    } else if (cookieToken) {
+      setToken(cookieToken);
+    }
+  }, [session, cookieToken]);
 
   //Gallery
   const urlGalleries = "http://localhost:8080/api/gallery/my-gallery";
@@ -22,50 +37,44 @@ export default function page() {
     galleryReducer,
     initialGalleryState
   );
+
   const { galleries, currentPage, pageSize, totalPages } = stateGallery;
 
   useEffect(() => {
-    const userData = localStorage.getItem("user");
-
+    if (!token || !userProfile) return; // ✅ Ensure token & user are ready before fetching
     const fetchData = async () => {
       dispatchGallery({ type: GALLERY_ACTIONS.FETCH_INIT });
 
       try {
-        if (userData) {
-          const parsedUser = JSON.parse(userData);
-          setUser(parsedUser);
+        const response = await axios.get(urlGalleries, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            userId: userProfile.id,
+            page: currentPage - 1,
+            size: pageSize,
+          }, // Sử dụng tham số page và size
+        });
 
-          const response = await axios.get(urlGalleries, {
-            headers: {
-              Authorization: `Bearer ${cookieToken}`,
-            },
-            params: {
-              userId: parsedUser.id,
-              page: currentPage - 1,
-              size: pageSize,
-            }, // Sử dụng tham số page và size
+        const { content, totalPages } = response.data;
+
+        if (Array.isArray(content)) {
+          dispatchGallery({
+            type: GALLERY_ACTIONS.FETCH_SUCCESS,
+            payload: { galleries: content, totalPages },
           });
-
-          const { content, totalPages } = response.data;
-
-          if (Array.isArray(content)) {
-            dispatchGallery({
-              type: GALLERY_ACTIONS.FETCH_SUCCESS,
-              payload: { galleries: content, totalPages },
-            });
-          } else {
-            console.warn("Unexpected API response format:", response.data);
-            dispatchGallery({ type: GALLERY_ACTIONS.FETCH_ERROR });
-          }
+        } else {
+          console.warn("Unexpected API response format:", response.data);
+          dispatchGallery({ type: GALLERY_ACTIONS.FETCH_ERROR });
         }
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu từ API:", error);
         dispatchGallery({ type: GALLERY_ACTIONS.FETCH_ERROR });
       }
     };
-
     fetchData();
-  }, [currentPage, pageSize]);
+  }, [token, userProfile, currentPage, pageSize]);
 
   const handlePrevPage = () => {
     if (currentPage > 1) {

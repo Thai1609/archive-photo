@@ -9,28 +9,23 @@ export async function middleware(req: NextRequest) {
   const secret = process.env.NEXTAUTH_SECRET;
 
   // Get tokens
-  const token = req.cookies.get("token")?.value;
-  const tokenGG = await getToken({ req, secret });
+  const token = await getToken({ req, secret });
 
-  console.log("token: ", token);
-  console.log("tokenGG : ", tokenGG);
+  console.log("token : ", token);
 
   if (pathname.startsWith("/api/auth")) {
     return NextResponse.next();
   }
-  //  If the user is NOT logged in and tries to access a protected page -> Redirect to login
-  if (!token && !tokenGG) {
+
+  if (!token || (token.exp && token.exp < Math.floor(Date.now() / 1000))) {
     if (!pathname.startsWith("/auth")) {
-       return NextResponse.redirect(new URL("/auth/login", req.url));
+      return NextResponse.redirect(new URL("/auth/account", req.url));
     }
   }
 
-   if ((token || tokenGG) && pathname.startsWith("/auth")) {
+  if (token && pathname.startsWith("/auth")) {
     return NextResponse.redirect(new URL("/photos", req.url));
   }
-
-  // Allow access to other pages
-  return NextResponse.next();
 }
 
 // Apply middleware to all routes except Next.js static files (_next, favicon)

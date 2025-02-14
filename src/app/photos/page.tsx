@@ -5,14 +5,14 @@ import galleryReducer, {
 } from "@/app/reducers/galleryReducer/galleryReducer";
 import axios from "axios";
 import { getCookie } from "cookies-next";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useReducer, useState } from "react";
 import { useWishlist } from "../../context/WishlistContext";
+import { useSession } from "next-auth/react";
+import { useAuth } from "@/context/AuthProvider";
 
 export default function HomePage() {
   const router = useRouter();
-  const cookieToken = getCookie("token");
 
   const [state, dispatch] = useReducer(galleryReducer, initialGalleryState);
   const { galleries, currentPage, pageSize, totalPages, isLoading, isError } =
@@ -20,7 +20,9 @@ export default function HomePage() {
 
   const [token, setToken] = useState("");
   const { data: session } = useSession();
+  const cookieToken = getCookie("token");
 
+  // ✅ Update token state after session or cookies change
   useEffect(() => {
     if (session?.backendToken) {
       setToken(session.backendToken);
@@ -32,32 +34,30 @@ export default function HomePage() {
   const url = "http://localhost:8080/api/gallery/get-all";
 
   useEffect(() => {
+    if (!token) return;
     const fetchGalleryData = async () => {
-      if (token) {
-        dispatch({ type: GALLERY_ACTIONS.FETCH_INIT });
-        try {
-          const response = await axios.get(url, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            params: { page: currentPage - 1, size: pageSize }, // Sử dụng tham số page và size
-          });
-          console.log("data all gallery is public:", response.data);
+      dispatch({ type: GALLERY_ACTIONS.FETCH_INIT });
+      try {
+        const response = await axios.get(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: { page: currentPage - 1, size: pageSize }, // Sử dụng tham số page và size
+        });
+        console.log("data all gallery is public:", response.data);
 
-          const { content, totalPages } = response.data;
+        const { content, totalPages } = response.data;
 
-          dispatch({
-            type: GALLERY_ACTIONS.FETCH_SUCCESS,
-            payload: { galleries: content, totalPages },
-          });
-        } catch (error) {
-          console.error("Lỗi khi lấy dữ liệu từ API:", error);
+        dispatch({
+          type: GALLERY_ACTIONS.FETCH_SUCCESS,
+          payload: { galleries: content, totalPages },
+        });
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu từ API:", error);
 
-          dispatch({ type: GALLERY_ACTIONS.FETCH_ERROR });
-        }
+        dispatch({ type: GALLERY_ACTIONS.FETCH_ERROR });
       }
     };
-
     fetchGalleryData();
   }, [currentPage, pageSize, token]);
 
@@ -87,20 +87,7 @@ export default function HomePage() {
     router.push(`/photos/galleries/${id}`);
   };
 
-  const [user, setUser] = useState(Object);
-
-  const userData = localStorage.getItem("user");
-  useEffect(() => {
-    if (userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error("Failed to parse tags from localStorage:", error);
-      }
-    }
-  }, []);
-
+  const { userProfile } = useAuth();
   const { wishlist, toggleWishlist } = useWishlist(); // Get wishlist state & function
 
   return (
@@ -125,7 +112,9 @@ export default function HomePage() {
                       />
                       {/* Icon Button */}
                       <div
-                        onClick={() => toggleWishlist(user.id, String(item.id))}
+                        onClick={() =>
+                          toggleWishlist(userProfile?.id, String(item.id))
+                        }
                         className={`absolute top-2 right-2 w-10 h-10 flex items-center justify-center rounded-full cursor-pointer transition duration-300 shadow-md ${
                           wishlist[item.id]
                             ? "bg-pink-500"

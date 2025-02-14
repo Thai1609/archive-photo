@@ -107,25 +107,13 @@ export default function ModalAccountUserPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="mb-2 text-base block" htmlFor="firstName">
-              First name
+              Full name
             </label>
             <input
-              id="firstName"
+              id="fullName"
               type="text"
-              placeholder="First name"
+              placeholder="Full name"
               defaultValue={user.firstName}
-              className="px-4 py-3 text-base rounded-md bg-white border border-gray-400 w-full outline-blue-500 focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-          <div>
-            <label className="mb-2 text-base block" htmlFor="lastName">
-              Last name
-            </label>
-            <input
-              id="lastName"
-              type="text"
-              placeholder="Last name"
-              defaultValue={user.lastName}
               className="px-4 py-3 text-base rounded-md bg-white border border-gray-400 w-full outline-blue-500 focus:ring-2 focus:ring-blue-400"
             />
           </div>

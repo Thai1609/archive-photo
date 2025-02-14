@@ -1,14 +1,52 @@
 import axios from "axios";
-import { getCookie } from "cookies-next";
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import tagReducer, {
   TAG_ACTIONS,
   initialTagState,
 } from "../app/reducers/tagReducer/tagReducer";
+import { useAuth } from "@/context/AuthProvider";
+import { useSession } from "next-auth/react";
 
-const ProductModal = () => {
+const TagModal = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [state, dispatch] = useReducer(tagReducer, initialTagState);
+
+  const [nameTag, setNameTag] = useState("");
+  const [tagDescription, setTagDescription] = useState("");
+
+  const { data: session } = useSession();
+  const token = useMemo(() => session?.backendToken || null, [session]);
+
+  const { userProfile } = useAuth();
+
+  const url = "http://localhost:8080/api/gallery/tag/create";
+
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    console.log("User tag input: ", userProfile?.id);
+
+    if (!userProfile?.id || !token) return;
+
+    const formDataTag = {
+      name: nameTag,
+      description: tagDescription,
+      userId: userProfile?.id,
+    };
+
+    try {
+      console.log("Data tag input: ", formDataTag);
+      const response = await axios.post(url, formDataTag, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      dispatch({ type: TAG_ACTIONS.ADD_TAG, payload: response.data });
+      window.location.reload();
+      setIsModalOpen(false);
+    } catch (error) {
+      dispatch({ type: TAG_ACTIONS.ERROR, payload: "Failed to add tag" });
+    }
+  };
 
   // Hàm mở modal
   const openModal = () => {
@@ -18,56 +56,6 @@ const ProductModal = () => {
   // Hàm đóng modal
   const closeModal = () => {
     setIsModalOpen(false);
-  };
-  const [user, setUser] = useState(Object);
-  useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
-    }
-  }, []);
-  const cookieToken = getCookie("token");
-
-  const url = "http://localhost:8080/api/gallery/tag/create";
-
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    userId: "",
-  });
-
-  useEffect(() => {
-    if (user && user.id) {
-      setFormData((prevFormData) => ({
-        ...prevFormData,
-        userId: user.id,
-      }));
-    }
-  }, [user]);
-
-  const handleChange = (e: { target: { name: any; value: any } }) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  const handleSubmit = async (e: { preventDefault: () => void }) => {
-    e.preventDefault(); // Prevent the default form submission
-    try {
-      const response = await axios.post(url, formData, {
-        headers: {
-          Authorization: `Bearer ${cookieToken}`,
-        },
-      });
-      dispatch({ type: TAG_ACTIONS.ADD_TAG, payload: response.data });
-      window.location.reload();
-      setIsModalOpen(false);
-    } catch (error) {
-      dispatch({ type: TAG_ACTIONS.ERROR, payload: "Failed to add tag" });
-    }
   };
 
   return (
@@ -141,8 +129,8 @@ const ProductModal = () => {
                     type="text"
                     name="name"
                     id="name"
-                    onChange={handleChange}
-                    value={formData.name}
+                    onChange={(e) => setNameTag(e.target.value)}
+                    value={nameTag}
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                     placeholder="Type product name"
                     required
@@ -160,11 +148,10 @@ const ProductModal = () => {
                     id="description"
                     name="description"
                     rows={4}
-                    onChange={handleChange}
-                    value={formData.description}
+                    onChange={(e) => setTagDescription(e.target.value)}
+                    value={tagDescription || ""}
                     className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="Write product description here"
-                    defaultValue={""}
                   />
                 </div>
               </div>
@@ -195,4 +182,4 @@ const ProductModal = () => {
   );
 };
 
-export default ProductModal;
+export default TagModal;

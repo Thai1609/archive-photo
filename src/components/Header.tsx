@@ -3,32 +3,18 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useWishlist } from "../context/WishlistContext";
 import { useAuth } from "../context/AuthProvider";
-import { useSession } from "next-auth/react";
 
 export default function Header() {
-  const [email, setEmail] = useState("");
-
-  const { data: session } = useSession();
-
   const { userProfile, logout } = useAuth();
 
   const { wishlist } = useWishlist();
   const wishlistCount = Object.keys(wishlist).length;
-
-  useEffect(() => {
-     if (session?.user?.email) {
-      setEmail(session.user.email);
-    }
-    console.log("IN HEADER: ", userProfile);
-  }, []);
 
   const pathname = usePathname();
 
   const buttons = [
     { name: "Home", href: "/photos" },
     { name: "My Photos", href: "/photos/galleries" },
-    { name: "About", href: "/about" },
-    { name: "Services", href: "/services" },
   ];
 
   useEffect(() => {
@@ -81,7 +67,7 @@ export default function Header() {
   });
 
   return (
-    <header className=" top-0 left-0  w-full bg-white border-b py-3 sm:px-6 px-4 font-[sans-serif] min-h-[75px] tracking-wide fixed z-50">
+    <header className=" top-0 left-0 w-full bg-white border-b py-3 sm:px-6 px-4 font-[sans-serif] min-h-[75px] tracking-wide fixed z-50">
       <div className="flex max-w-screen-xl mx-auto w-full">
         <div className="flex flex-wrap items-center lg:gap-y-2 gap-4 w-full">
           <a href="/photos" className="max-sm:hidden">
@@ -145,7 +131,7 @@ export default function Header() {
                             data-original="#000000"
                           />
                         </svg>
-                        Hi, {userProfile.lastName}
+                        Hi, {userProfile.fullName}
                       </li>
                     </ul>
                   ) : (
@@ -192,6 +178,28 @@ export default function Header() {
             </div>
             <div className="flex items-center sm:space-x-8 space-x-6">
               <div className="flex flex-col items-center justify-center gap-0.5 cursor-pointer">
+                <svg
+                  className="w-6 h-6 text-gray-800 dark:text-white"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 10V6a3 3 0 0 1 3-3v0a3 3 0 0 1 3 3v4m3-2 .917 11.923A1 1 0 0 1 17.92 21H6.08a1 1 0 0 1-.997-1.077L6 8h12Z"
+                  />
+                </svg>
+                <span className="text-[13px] font-semibold text-[#333]">
+                
+                </span>
+              </div>
+              <div className="flex flex-col items-center justify-center gap-0.5 cursor-pointer">
                 <div className="relative">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -216,42 +224,24 @@ export default function Header() {
                   <div className="flex items-center max-lg:ml-auto space-x-5">
                     <div className="flex items-center ml-auto ">
                       {userProfile ? (
-                        <>
-                          {/* <div>
-                              <li
-                                id="toggleProfile"
-                                className="text-gray-500 bg-gray-100 px-4 py-2 rounded-full text-sm tracking-wide font-bold cursor-pointer flex items-center"
-                              >
-                                <img
-                                  src="https://readymadeui.com/team-3.webp"
-                                  className="w-11 h-11 rounded-full border-2 border-blue-600 p-0.5 mx-auto"
-                                />
-                                Hi, {userProfile.lastName}
-                              </li>
-
-                            </div> */}
-                          <div
-                            id="toggleProfile"
-                            className="flex flex-wrap items-center cursor-pointer border border-gray-300 rounded-lg w-max px-1.5 py-1 mx-auto "
-                          >
-                            <img
-                              src={
-                                userProfile.avatarUrl
-                                  ? ""
-                                  : "https://readymadeui.com/team-1.webp"
-                              }
-                              className="w-10 h-10 rounded-lg"
-                            />
-                            <div className="mx-4">
-                              <p className="text-sm text-gray-800 font-semibold">
-                                Hi, {userProfile.lastName}
-                              </p>
-                              <p className="text-xs text-gray-400 mt-0.5">
-                                {email}
-                              </p>
-                            </div>
+                        <div
+                          id="toggleProfile"
+                          className="flex flex-wrap items-center cursor-pointer border border-gray-300 rounded-lg w-max px-1.5 py-1 mx-auto "
+                        >
+                          <img
+                            src={
+                              userProfile.avatarUrl
+                                ? userProfile.avatarUrl
+                                : "https://readymadeui.com/team-1.webp"
+                            }
+                            className="w-10 h-10 rounded-lg"
+                          />
+                          <div className="mx-4">
+                            <p className="text-sm text-gray-800 font-semibold">
+                              Hi, {userProfile.fullName}
+                            </p>
                           </div>
-                        </>
+                        </div>
                       ) : (
                         <></>
                       )}

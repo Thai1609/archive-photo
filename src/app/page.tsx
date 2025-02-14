@@ -1,6 +1,6 @@
 "use client";
 import { useSession } from "next-auth/react";
-import LoginPage from "./auth/login/page";
+import LoginPage from "./auth/account/LoginPage";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 

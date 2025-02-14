@@ -1,21 +1,40 @@
 import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import FacebookProvider from "next-auth/providers/facebook";
+import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
-import { setCookie } from "cookies-next";
 
-const backendLoginUrl = "http://localhost:8080/api/auth/login"; // ? API login email/password
-const backendGoogleUrl = "http://localhost:8080/api/auth/google"; // ? API login Google OAuth
+const backendLoginUrl = "http://localhost:8080/api/auth/login";
+const backendGoogleUrl = "http://localhost:8080/api/auth/google";
 
 export const authOptions = {
   providers: [
-    // ? Google Login
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      authorization: {
+        url: "https://accounts.google.com/o/oauth2/auth",
+        params: {
+          scope: "openid email profile",
+          prompt: "consent",
+          access_type: "offline",
+        },
+      },
     }),
 
-    // ? Email/Password Login
+    FacebookProvider({
+      clientId: process.env.FACEBOOK_CLIENT_ID as string,
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET as string,
+      authorization: {
+        url: "https://www.facebook.com/v18.0/dialog/oauth",
+        params: {
+          scope: "email public_profile",
+          auth_type: "rerequest",
+          display: "popup",
+        },
+      },
+    }),
+
     CredentialsProvider({
       name: "Email",
       credentials: {
@@ -28,76 +47,92 @@ export const authOptions = {
       },
       async authorize(credentials) {
         try {
-          console.log("?? Sending Login Request:", credentials?.email);
-
           const response = await axios.post(backendLoginUrl, {
             email: credentials?.email,
             password: credentials?.password,
           });
 
-          const dataBackend = response.data.result; // ? Ki?m tra d? li?u t? backend
-
-          if (!dataBackend) {
-            console.error("❌ No token returned from backend!");
-            return null;
+          const dataBackend = response.data.result;
+          if (dataBackend) {
+            return {
+              email: credentials?.email,
+              backendToken: dataBackend.token,
+            };
           }
-          return {
-            email: credentials?.email,
-            backendToken: response.data.result.token,
-          };
+          return null;
         } catch (error) {
-          console.error("? L?i ??ng nh?p:", error);
-          throw new Error("Email ho?c m?t kh?u kh?ng ?úng!");
+          throw new Error("Email not found or Password is invalid!");
         }
       },
     }),
   ],
 
   callbacks: {
-    async signIn({ user, account }) {
-      try {
-        if (account?.provider === "google") {
-          console.log("?? ??ng nh?p Google:", user.email);
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google") {
+        if (!profile) {
+          console.error("❌ No profile returned from Google!");
+          return false;
+        }
+        try {
+          console.log("🔍 Google Profile Data:", profile);
 
           const response = await axios.post(backendGoogleUrl, {
             email: user.email,
             provider: "GOOGLE",
             providerId: user.id,
+            name: user.name || profile.name,
+            imageUrl: profile.picture || user.image, // ✅ Ensure profile picture is used
           });
 
-          user.backendToken = response.data.result.token; // ? L?u token t? backend
-        }
+          const backendData = response.data.result;
 
-        return true;
-      } catch (error) {
-        console.error("? L?i l?u th?ng tin ??ng nh?p:", error);
-        return false;
+          user.backendToken = backendData.token; // ✅ Store backend token from Spring Boot
+        } catch (error) {
+          console.error("❌ Google sign-in error:", error);
+          return false;
+        }
       }
+      return true;
     },
 
-    async jwt({ token, user }) {
-      if (user?.backendToken) {
+    async jwt({ token, user, account, profile }) {
+      if (user) {
         token.backendToken = user.backendToken;
-      }
-      if (user?.email) {
-        token.email = user.email; // ✅ Store email in JWT token
-      }
-      if (user?.provider === "google") {
-        token.sub = user.sub; // Add `sub` from Google profile
-      }
+        token.email = user.email;
 
+        if (account?.provider === "google" && profile) {
+          token.name = profile.name;
+          token.image = profile.picture;
+          token.sub = profile.sub;
+        }
+
+        if (!token.exp) {
+          token.exp = Math.floor(Date.now() / 1000) + 5 * 60; // ✅ Token expires in 5 minutes
+        }
+      }
       return token;
     },
 
     async session({ session, token }) {
       session.backendToken = token.backendToken;
-      session.user.email = token.email; // ✅ Attach email to session
+      session.user.email = token.email;
+      session.user.name = token.name;
+      session.user.image = token.image;
       session.user.sub = token.sub;
-      setCookie("token", session.backendToken, { maxAge: 60 * 60 * 24 });
+      session.exp = token.exp ? new Date(token.exp * 1000).toISOString() : null;
+
       return session;
     },
   },
 
+  session: {
+    strategy: "jwt",
+    maxAge: 5 * 60, // ✅ Session expires in 1 minutes
+  },
+  httpOptions: {
+    timeout: 10000,
+  },
   secret: process.env.NEXTAUTH_SECRET,
 };
 

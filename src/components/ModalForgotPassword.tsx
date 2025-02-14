@@ -6,6 +6,7 @@ const ModalForgotPassword = ({ isOpen, onClose }) => {
   const urlForgot = "http://localhost:8080/api/auth/forgot";
 
   const [strEmail, setStrEmail] = useState("");
+
   const handleChange = (event) => {
     setStrEmail(event.target.value);
   };
@@ -23,6 +24,7 @@ const ModalForgotPassword = ({ isOpen, onClose }) => {
       console.error("Register error:", error);
     }
   };
+
   useEffect(() => {
     const handleEsc = (event) => {
       if (event.key === "Escape") {

@@ -7,15 +7,23 @@ import tagReducer, {
   TAG_ACTIONS,
 } from "../app/reducers/tagReducer/tagReducer";
 import ModalDeleteTag from "./ModalDeleteTag";
+import { useSession } from "next-auth/react";
+import { useAuth } from "@/context/AuthProvider";
 
 export default function AddGalleries() {
+  const [dropdownToggle, setDropdownToggle] = useState<HTMLElement | null>(
+    null
+  );
+  const [dropdownMenu, setDropdownMenu] = useState<HTMLElement | null>(null);
   const [options, setOptions] = useState<string[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const [user, setUser] = useState(Object);
 
-  const cookieToken = getCookie("token");
+  const { data: session } = useSession();
+  const token = session?.backendToken || getCookie("token") || "";
+
+  const { userProfile } = useAuth();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -40,8 +48,12 @@ export default function AddGalleries() {
 
   const [filteredOptions, setFilteredOptions] = useState(options);
 
-  const dropdownToggle = document.getElementById("dropdownToggle");
-  const dropdownMenu = document.getElementById("dropdownMenu");
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setDropdownToggle(document.getElementById("dropdownToggle"));
+      setDropdownMenu(document.getElementById("dropdownMenu"));
+    }
+  }, []);
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value); // Update search term
@@ -56,51 +68,42 @@ export default function AddGalleries() {
     setFilteredOptions(filtered);
   }, [options, inputValue]);
 
-  const userData = localStorage.getItem("user");
-  useEffect(() => {
-    if (userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error("Failed to parse tags from localStorage:", error);
-      }
-    }
-  }, []);
   //Tag
   const urlTags = "http://localhost:8080/api/gallery/tag/get-all";
   const [stateTag, dispatch] = useReducer(tagReducer, initialTagState);
 
   useEffect(() => {
+    if (!token || !userProfile) return; // ✅ Ensure token & user are ready before fetching
     const fetchDataTag = async () => {
       dispatch({ type: TAG_ACTIONS.LOADING, payload: true }); // Set loading to true
 
       try {
         const response = await axios.get(urlTags, {
           headers: {
-            Authorization: `Bearer ${cookieToken}`,
+            Authorization: `Bearer ${token}`,
           },
-          params: { userId: user.id },
+          params: { userId: userProfile?.id },
         });
         dispatch({
           type: TAG_ACTIONS.FETCH_TAGS,
           payload: response.data.result,
         });
       } catch (error) {
-        dispatch({ type: TAG_ACTIONS.ERROR, payload: "Failed to fetch tags" });
+        dispatch({
+          type: TAG_ACTIONS.ERROR,
+          payload: "Failed to fetch tags",
+        });
       }
     };
 
-    if (user && user.id) {
-      fetchDataTag();
-    }
-  }, [user]);
+    fetchDataTag();
+  }, [userProfile]);
 
   useEffect(() => {
     if (stateTag && stateTag.tags && stateTag.tags.length > 0) {
       try {
         const tagNames = stateTag.tags.map((tagItem) => tagItem.name);
-        console.error("Data tags:", tagNames);
+        console.log("Data tags:", tagNames);
         setOptions(tagNames);
       } catch (error) {
         console.error("Set data tag to option", error);
@@ -112,7 +115,7 @@ export default function AddGalleries() {
     setFormData((prevFormData) => ({
       ...prevFormData,
       nameTag: nameTag,
-      userId: user.id,
+      userId: userProfile?.id,
     }));
 
     // if (dropdownToggle && dropdownMenu) {
@@ -203,7 +206,7 @@ export default function AddGalleries() {
         withCredentials: true,
 
         headers: {
-          Authorization: `Bearer ${cookieToken}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
@@ -225,7 +228,7 @@ export default function AddGalleries() {
 
       const response = await axios.delete(urlUpload, {
         headers: {
-          Authorization: `Bearer ${cookieToken}`,
+          Authorization: `Bearer ${token}`,
         },
         params: { nameTag: name },
       });
