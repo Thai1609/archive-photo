@@ -67,7 +67,7 @@ export default function Header() {
   });
 
   return (
-    <header className=" top-0 left-0 w-full bg-white border-b py-3 sm:px-6 px-4 font-[sans-serif] min-h-[75px] tracking-wide fixed z-50">
+    <header className=" top-0 left-0 w-full bg-orange-400 border-b py-3 sm:px-6 px-4 font-[sans-serif] min-h-[75px] tracking-wide fixed z-50">
       <div className="flex max-w-screen-xl mx-auto w-full">
         <div className="flex flex-wrap items-center lg:gap-y-2 gap-4 w-full">
           <a href="/photos" className="max-sm:hidden">

@@ -10,6 +10,7 @@ import React, { useEffect, useReducer, useState } from "react";
 import { useWishlist } from "../../context/WishlistContext";
 import { useSession } from "next-auth/react";
 import { useAuth } from "@/context/AuthProvider";
+import Navbar from "@/components/Navbar";
 
 export default function HomePage() {
   const router = useRouter();
@@ -92,7 +93,12 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="bg-black font-[sans-serif] pt-20">
+      {/* navbar */}
+      <div className="fixed z-50 top-[65px] left-0 bg-white w-full min-h-[50px]">
+        Navbar
+      </div>
+      {/*content */}
+      <div className="bg-black font-[sans-serif] pt-[60px]">
         <div className="overflow-x-auto font-[sans-serif]">
           <div className="font-sans py-2 mx-auto lg:max-w-6xl md:max-w-4xl max-sm:max-w-md">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">

@@ -19,7 +19,7 @@ export async function middleware(req: NextRequest) {
 
   if (!token || (token.exp && token.exp < Math.floor(Date.now() / 1000))) {
     if (!pathname.startsWith("/auth")) {
-      return NextResponse.redirect(new URL("/auth/account", req.url));
+      return NextResponse.redirect(new URL("/auth/account/login", req.url));
     }
   }
 

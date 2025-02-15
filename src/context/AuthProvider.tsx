@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     deleteCookie("token");
     localStorage.setItem("user", "null");
     localStorage.removeItem("user");
-    signOut({ callbackUrl: "/auth/account" });
+    signOut({ callbackUrl: "/auth/account/login" });
   }, []);
 
   // ✅ Memoize context value to avoid unnecessary re-renders
