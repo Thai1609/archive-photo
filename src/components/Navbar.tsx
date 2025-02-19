@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
+import { useCategory } from "@/context/CategoryContext";
 
 export default function Navbar() {
+  const { category, setCategory } = useCategory();
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -20,7 +23,20 @@ export default function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  const handleSelect = () => {
+  const handleSelect = (
+    categorySelect: any,
+    parentCategorySelect: any,
+    event: React.MouseEvent
+  ) => {
+    event.stopPropagation(); // Ngăn sự kiện lan truyền lên parent
+
+    console.log(
+      "categorySelect: ",
+      categorySelect,
+      "parentCategorySelect: ",
+      parentCategorySelect
+    );
+    setCategory(categorySelect);
     setIsDropdownOpen(false); // Close dropdown when an option is clicked
     setOpenSubMenu(null);
   };
@@ -47,6 +63,7 @@ export default function Navbar() {
   }, []); // Chạy một lần khi component mount
   if (loading) return <p>Đang tải danh mục...</p>;
   if (error) return <p>Lỗi: {error}</p>;
+
   return (
     <div className="fixed top-[75px] left-0 bg-white w-full min-h-[50px] z-40">
       <div
@@ -84,10 +101,10 @@ export default function Navbar() {
               .map((category) => (
                 <li
                   key={category.id}
-                  className=" py-2 px-2 hover:bg-gray-50 text-gray-800 text-sm cursor-pointer"
+                  className=" py-2 px-2 hover:bg-gray-50 text-gray-800 text-sm cursor-pointer h-full"
                   onMouseEnter={() => setOpenSubMenu(category.name)}
                   onMouseLeave={() => setOpenSubMenu(null)}
-                  onClick={handleSelect}
+                  onClick={(event) => handleSelect(category.id, null, event)}
                 >
                   {category.name}
 
@@ -107,7 +124,7 @@ export default function Navbar() {
                   {openSubMenu === category.name && (
                     <ul
                       ref={submenuRef}
-                      className="absolute left-full top-0 bg-white shadow-lg min-w-[400px] p-2"
+                      className="absolute left-full top-0 bg-white shadow-lg min-w-[400px] h-full p-2 "
                     >
                       {categories
                         .filter((sub) => sub.parentCategory?.id === category.id) // Show subcategories
@@ -115,7 +132,9 @@ export default function Navbar() {
                           <li
                             key={sub.id}
                             className="py-2 px-4 hover:bg-gray-50 text-gray-800 text-sm cursor-pointer"
-                            onClick={handleSelect}
+                            onClick={(event) =>
+                              handleSelect(category.id, sub.id, event)
+                            }
                           >
                             {sub.name}
                           </li>
