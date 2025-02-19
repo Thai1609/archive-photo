@@ -144,11 +144,11 @@ export const WishlistProvider = ({
   );
 };
 
-// Custom Hook to Use Wishlist
-export const useWishlist = () => {
-  const context = useContext(WishlistContext);
-  if (!context) {
-    throw new Error("useWishlist must be used within a WishlistProvider");
-  }
-  return context;
-};
+// // Custom Hook to Use Wishlist
+// export const useWishlist = () => {
+//   const context = useContext(WishlistContext);
+//   if (!context) {
+//     throw new Error("useWishlist must be used within a WishlistProvider");
+//   }
+//   return context;
+// };

@@ -13,19 +13,19 @@ export async function middleware(req: NextRequest) {
 
   console.log("token : ", token);
 
-  if (pathname.startsWith("/api/auth")) {
-    return NextResponse.next();
-  }
+  // if (pathname.startsWith("/api/auth")) {
+  //   return NextResponse.next();
+  // }
 
-  if (!token || (token.exp && token.exp < Math.floor(Date.now() / 1000))) {
-    if (!pathname.startsWith("/auth")) {
-      return NextResponse.redirect(new URL("/auth/account/login", req.url));
-    }
-  }
+  // if (!token) {
+  //   if (!pathname.startsWith("/auth")) {
+  //     return NextResponse.redirect(new URL("/auth/account/login", req.url));
+  //   }
+  // }
 
-  if (token && pathname.startsWith("/auth")) {
-    return NextResponse.redirect(new URL("/photos", req.url));
-  }
+  // if (token && pathname.startsWith("/auth")) {
+  //   return NextResponse.redirect(new URL("/photos", req.url));
+  // }
 }
 
 // Apply middleware to all routes except Next.js static files (_next, favicon)

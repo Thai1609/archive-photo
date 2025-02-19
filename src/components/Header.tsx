@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { useWishlist } from "../context/WishlistContext";
-import { useAuth } from "../context/AuthProvider";
+ import { useAuth } from "../context/AuthProvider";
 
 export default function Header() {
   const { userProfile, logout } = useAuth();
 
-  const { wishlist } = useWishlist();
-  const wishlistCount = Object.keys(wishlist).length;
+  // const { wishlist } = useWishlist();
+  // const wishlistCount = Object.keys(wishlist).length;
 
   const pathname = usePathname();
 
@@ -67,7 +66,7 @@ export default function Header() {
   });
 
   return (
-    <header className=" top-0 left-0 w-full bg-orange-400 border-b py-3 sm:px-6 px-4 font-[sans-serif] min-h-[75px] tracking-wide fixed z-50">
+    <header className="fixed top-0 left-0 w-full bg-orange-400 border-b py-3 sm:px-6 px-4 font-[sans-serif] min-h-[75px] tracking-wide z-50">
       <div className="flex max-w-screen-xl mx-auto w-full">
         <div className="flex flex-wrap items-center lg:gap-y-2 gap-4 w-full">
           <a href="/photos" className="max-sm:hidden">
@@ -177,47 +176,94 @@ export default function Header() {
               />
             </div>
             <div className="flex items-center sm:space-x-8 space-x-6">
-              <div className="flex flex-col items-center justify-center gap-0.5 cursor-pointer">
-                <svg
-                  className="w-6 h-6 text-gray-800 dark:text-white"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 10V6a3 3 0 0 1 3-3v0a3 3 0 0 1 3 3v4m3-2 .917 11.923A1 1 0 0 1 17.92 21H6.08a1 1 0 0 1-.997-1.077L6 8h12Z"
-                  />
-                </svg>
-                <span className="text-[13px] font-semibold text-[#333]">
-                
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center gap-0.5 cursor-pointer">
-                <div className="relative">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="cursor-pointer fill-[#333] inline w-5 h-5"
-                    viewBox="0 0 64 64"
-                  >
-                    <path
-                      d="M45.5 4A18.53 18.53 0 0 0 32 9.86 18.5 18.5 0 0 0 0 22.5C0 40.92 29.71 59 31 59.71a2 2 0 0 0 2.06 0C34.29 59 64 40.92 64 22.5A18.52 18.52 0 0 0 45.5 4ZM32 55.64C26.83 52.34 4 36.92 4 22.5a14.5 14.5 0 0 1 26.36-8.33 2 2 0 0 0 3.27 0A14.5 14.5 0 0 1 60 22.5c0 14.41-22.83 29.83-28 33.14Z"
-                      data-original="#000000"
-                    />
-                  </svg>
-                  <span className="absolute left-auto -ml-1 top-0 rounded-full bg-red-500 px-1 py-0 text-xs text-white">
-                    {wishlistCount}
+              <div className="space-x-5 flex justify-center font-[sans-serif] ">
+                <div className="flex flex-col items-center justify-center gap-0.5 cursor-pointer">
+                  <div className="relative">
+                    <svg
+                      className="cursor-pointer dark:text-white inline w-6 h-6"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 10V6a3 3 0 0 1 3-3v0a3 3 0 0 1 3 3v4m3-2 .917 11.923A1 1 0 0 1 17.92 21H6.08a1 1 0 0 1-.997-1.077L6 8h12Z"
+                      />
+                    </svg>
+                    <span className="absolute left-auto -ml-1 top-0 rounded-full bg-red-500 px-1 py-0 text-xs text-white">
+                      10
+                    </span>
+                  </div>
+                  <span className="text-[13px] font-semibold text-[#333]">
+                    Don hang
                   </span>
                 </div>
-                <span className="text-[13px] font-semibold text-[#333]">
-                  Wishlist
-                </span>
+
+                <div className="flex flex-col items-center justify-center gap-0.5 cursor-pointer">
+                  <div className="relative">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="cursor-pointer fill-[#333] inline w-5 h-5"
+                      viewBox="0 0 512 512"
+                    >
+                      <path
+                        d="M438.957 19.477H73.043C32.766 19.477 0 52.244 0 92.52v246.961c0 40.276 32.766 73.043 73.043 73.043h28.663l.561 64.483a15.648 15.648 0 0 0 15.649 15.517 15.64 15.64 0 0 0 9.565-3.262l99.425-76.738h212.051c40.277 0 73.043-32.767 73.043-73.043V92.52c0-40.276-32.766-73.043-73.043-73.043zm41.739 320.005c0 23.015-18.724 41.739-41.739 41.739H221.569c-3.46 0-6.823 1.147-9.563 3.261l-78.711 60.75-.422-48.495c-.074-8.591-7.06-15.516-15.651-15.516H73.043c-23.015 0-41.739-18.724-41.739-41.739V92.52c0-23.015 18.724-41.739 41.739-41.739h365.915c23.015 0 41.739 18.724 41.739 41.739v246.962z"
+                        data-original="#000000"
+                      />
+                    </svg>
+                    <span className="absolute left-auto -ml-1 top-0 rounded-full bg-red-500 px-1 py-0 text-xs text-white">
+                      10
+                    </span>
+                  </div>
+                  <span className="text-[13px] font-semibold text-[#333]">
+                    Message
+                  </span>
+                </div>
+                <div className="flex flex-col items-center justify-center gap-0.5 cursor-pointer">
+                  <div className="relative">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="cursor-pointer fill-[#333] inline w-5 h-5"
+                      viewBox="0 0 371.263 371.263"
+                    >
+                      <path
+                        d="M305.402 234.794v-70.54c0-52.396-33.533-98.085-79.702-115.151.539-2.695.838-5.449.838-8.204C226.539 18.324 208.215 0 185.64 0s-40.899 18.324-40.899 40.899c0 2.695.299 5.389.778 7.964-15.868 5.629-30.539 14.551-43.054 26.647-23.593 22.755-36.587 53.354-36.587 86.169v73.115c0 2.575-2.096 4.731-4.731 4.731-22.096 0-40.959 16.647-42.995 37.845-1.138 11.797 2.755 23.533 10.719 32.276 7.904 8.683 19.222 13.713 31.018 13.713h72.217c2.994 26.887 25.869 47.905 53.534 47.905s50.54-21.018 53.534-47.905h72.217c11.797 0 23.114-5.03 31.018-13.713 7.904-8.743 11.797-20.479 10.719-32.276-2.036-21.198-20.958-37.845-42.995-37.845a4.704 4.704 0 0 1-4.731-4.731zM185.64 23.952c9.341 0 16.946 7.605 16.946 16.946 0 .778-.12 1.497-.24 2.275-4.072-.599-8.204-1.018-12.336-1.138-7.126-.24-14.132.24-21.078 1.198-.12-.778-.24-1.497-.24-2.275.002-9.401 7.607-17.006 16.948-17.006zm0 323.358c-14.431 0-26.527-10.3-29.342-23.952h58.683c-2.813 13.653-14.909 23.952-29.341 23.952zm143.655-67.665c.479 5.15-1.138 10.12-4.551 13.892-3.533 3.773-8.204 5.868-13.353 5.868H59.89c-5.15 0-9.82-2.096-13.294-5.868-3.473-3.772-5.09-8.743-4.611-13.892.838-9.042 9.282-16.168 19.162-16.168 15.809 0 28.683-12.874 28.683-28.683v-73.115c0-26.228 10.419-50.719 29.282-68.923 18.024-17.425 41.498-26.887 66.528-26.887 1.198 0 2.335 0 3.533.06 50.839 1.796 92.277 45.929 92.277 98.325v70.54c0 15.809 12.874 28.683 28.683 28.683 9.88 0 18.264 7.126 19.162 16.168z"
+                        data-original="#000000"
+                      />
+                    </svg>
+                    <span className="absolute left-auto -ml-1 top-0 rounded-full bg-red-500 px-1 py-0 text-xs text-white">
+                      3
+                    </span>
+                  </div>
+                  <span className="text-[13px] font-semibold text-[#333]">
+                    Thong bao
+                  </span>
+                </div>
+
+                <div className="flex flex-col items-center justify-center gap-0.5 cursor-pointer">
+                  <div className="relative">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="cursor-pointer fill-[#333] inline w-5 h-5"
+                      viewBox="0 0 64 64"
+                    >
+                      <path
+                        d="M45.5 4A18.53 18.53 0 0 0 32 9.86 18.5 18.5 0 0 0 0 22.5C0 40.92 29.71 59 31 59.71a2 2 0 0 0 2.06 0C34.29 59 64 40.92 64 22.5A18.52 18.52 0 0 0 45.5 4ZM32 55.64C26.83 52.34 4 36.92 4 22.5a14.5 14.5 0 0 1 26.36-8.33 2 2 0 0 0 3.27 0A14.5 14.5 0 0 1 60 22.5c0 14.41-22.83 29.83-28 33.14Z"
+                        data-original="#000000"
+                      />
+                    </svg>
+                    <span className="absolute left-auto -ml-1 top-0 rounded-full bg-red-500 px-1 py-0 text-xs text-white">
+                      {/* {wishlistCount} */}
+                    </span>
+                  </div>
+                  <span className="text-[13px] font-semibold text-[#333]">
+                    Wishlist
+                  </span>
+                </div>
               </div>
               {userProfile ? (
                 <div className="max-lg:hidden">
@@ -245,7 +291,7 @@ export default function Header() {
                       ) : (
                         <></>
                       )}
-                      <ul className="flex space-x-4 relative">
+                      <ul className="flex space-x-4 relative z-50">
                         <li className="relative px-1 after:absolute after:block after:-bottom-2 after:left-0 after:transition-all after:duration-300">
                           <div
                             id="collapseMenuProfile"
@@ -263,8 +309,8 @@ export default function Header() {
                                   >
                                     <path
                                       stroke="currentColor"
-                                      strokeLinejoin="round"
-                                      strokeWidth="2"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
                                       d="M10 12v1h4v-1m4 7H6a1 1 0 0 1-1-1V9h14v9a1 1 0 0 1-1 1ZM4 5h16a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
                                     />
                                   </svg>

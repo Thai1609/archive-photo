@@ -1,0 +1,5 @@
+{
+    "search.decorations.badges": true,
+    "search.decorations.colors": true,
+    "workbench.settings.enableNaturalLanguageSearch": false
+}

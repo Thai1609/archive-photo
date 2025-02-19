@@ -96,7 +96,7 @@ export default function RegisterPage() {
                 <path
                   fill="none"
                   strokeMiterlimit={10}
-                  strokeWidth={40}
+                  stroke-width={40}
                   d="M452 444H60c-22.091 0-40-17.909-40-40v-39.446l212.127-157.782c14.17-10.54 33.576-10.54 47.746 0L492 364.554V404c0 22.091-17.909 40-40 40Z"
                   data-original="#000000"
                 />
