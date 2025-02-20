@@ -4,7 +4,7 @@ import { SessionProvider } from "next-auth/react";
 import { WishlistProvider } from "../context/WishlistContext";
 import { AuthProvider } from "../context/AuthProvider";
 import { ProductProvider } from "@/context/ProductContext";
-import { CategoryProvider } from "@/context/CategoryContext";
+import { ProductFilterProvider } from "@/context/ProductFilterProvider";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +12,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <AuthProvider>
         {/* <WishlistProvider>
           <ProductProvider> */}
-        <CategoryProvider>{children}</CategoryProvider>
+        <ProductFilterProvider>{children}</ProductFilterProvider>
         {/* </ProductProvider>
         </WishlistProvider> */}
       </AuthProvider>

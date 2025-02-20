@@ -8,10 +8,11 @@ import { useSession } from "next-auth/react";
 import { useAuth } from "@/context/AuthProvider";
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
+import { useProductFilter } from "@/context/ProductFilterProvider";
 
 export default function HomePage() {
   const router = useRouter();
-
+  const { filters } = useProductFilter(); // Use filters from Context
   const [token, setToken] = useState("");
   const { data: session } = useSession();
   const cookieToken = getCookie("token");
@@ -24,20 +25,23 @@ export default function HomePage() {
       setToken(cookieToken);
     }
   }, [session, cookieToken]);
+
   const [products, setProducts] = useState<any[]>([]);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const url = `http://localhost:8080/api/products?page=${page}&size=10`;
+  console.log("Show filters: ", filters);
 
+  const url = "http://localhost:8080/api/products";
   const fetchProductData = async (pageNumber = 0) => {
     try {
       const response = await axios.get(url, {
         // headers: {
         //   Authorization: `Bearer ${token}`,
         // },
+        params: { ...filters, pageNumber },
       });
       console.log("Show product: ", response.data);
 
@@ -51,7 +55,7 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchProductData();
-  }, []);
+  }, [filters]);
 
   const handleNextPageByOptions = (id: number) => {
     router.push(`/photos/products/${id}`);
@@ -70,7 +74,7 @@ export default function HomePage() {
           <div className="font-sans py-2 mx-auto lg:max-w-6xl md:max-w-4xl max-sm:max-w-md">
             <div className="p-4 mx-auto lg:max-w-7xl md:max-w-4xl sm:max-w-xl max-sm:max-w-sm">
               <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-800 mb-6 sm:mb-10">
-                Bài đăng mới nhất
+                {filters.breadCrumb}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 max-xl:gap-4 gap-6">
                 {products.map((product) => (

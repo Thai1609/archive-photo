@@ -1,9 +1,5 @@
 "use client";
 import AddGalleries from "@/components/ModalAddGallery";
-import galleryReducer, {
-  GALLERY_ACTIONS,
-  initialGalleryState,
-} from "@/app/reducers/productReducer/productReducer";
 
 import axios from "axios";
 import { getCookie } from "cookies-next";
