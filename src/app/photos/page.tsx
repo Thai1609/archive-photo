@@ -15,6 +15,7 @@ export default function HomePage() {
   const { filters } = useProductFilter(); // Use filters from Context
   const [token, setToken] = useState("");
   const { data: session } = useSession();
+
   const cookieToken = getCookie("token");
 
   // ✅ Update token state after session or cookies change
@@ -27,12 +28,11 @@ export default function HomePage() {
   }, [session, cookieToken]);
 
   const [products, setProducts] = useState<any[]>([]);
+
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  console.log("Show filters: ", filters);
 
   const url = "http://localhost:8080/api/products";
   const fetchProductData = async (pageNumber = 0) => {
@@ -57,8 +57,12 @@ export default function HomePage() {
     fetchProductData();
   }, [filters]);
 
-  const handleNextPageByOptions = (id: number) => {
-    router.push(`/photos/products/${id}`);
+  const handleNextPageById = (
+    category: string,
+    subCategory: string,
+    id: number
+  ) => {
+    router.push(`/photos/${category}/${subCategory}/${id}`);
   };
 
   const { userProfile } = useAuth();
@@ -82,7 +86,16 @@ export default function HomePage() {
                     key={product.id} // Make sure to add a unique key
                     className="bg-white rounded p-4 cursor-pointer hover:-translate-y-1 transition-all relative"
                   >
-                    <div className="mb-4 bg-gray-100 rounded p-2">
+                    <div
+                      className="mb-4 bg-gray-100 rounded p-2"
+                      onClick={() =>
+                        handleNextPageById(
+                          "filters.categoryId",
+                          "filters.name",
+                          product.id
+                        )
+                      }
+                    >
                       <Image
                         src={product.imageUrl}
                         alt={product.name}
@@ -151,24 +164,6 @@ export default function HomePage() {
                 Tiếp
               </button>
             </div>
-
-            {/* <div className="col-span-full flex flex-col items-center justify-center text-gray-500">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-16 w-16 mb-4 text-gray-300"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M8 10h.01M12 10h.01M16 10h.01M9 16h6m-7 4h8a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                        <p>No items found</p>
-                      </div></>)} */}
           </div>
         </div>
       </div>

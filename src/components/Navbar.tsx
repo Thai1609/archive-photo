@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { useProductFilter } from "@/context/ProductFilterProvider";
-import PriceFilter from "./PriceFilter";
 
 export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -23,11 +22,6 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filterContext = useProductFilter();
-  // Kiểm tra nếu context không tồn tại
-  if (!filterContext) return null;
-  const { filters, setFilters } = filterContext;
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -36,45 +30,79 @@ export default function Navbar() {
       [e.target.name]: e.target.value,
     }));
   };
-  const handleSelect = (
-    categorySelect: any,
-    parentCategorySelect: any,
-    event: React.MouseEvent
-  ) => {
-    event.stopPropagation(); // Ngăn sự kiện lan truyền lên parent
 
-    setFilters((prevFilters: any) => ({
-      ...prevFilters,
-      categoryId: categorySelect,
-      parentId: parentCategorySelect,
-    }));
+  const [breadCrumb, setBreadcrumb] = useState<{ id: string; name: string }[]>([
+    { id: "home", name: "Home" },
+  ]);
 
-    setIsDropdownOpen(false);
-    setOpenSubMenu(null);
-  };
+  const filterContext = useProductFilter();
+  if (!filterContext) return null;
+  const { setFilters } = filterContext;
 
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const url = "http://localhost:8080/api/categories";
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get(url);
+        const response = await axios.get(
+          "http://localhost:8080/api/categories"
+        );
         setCategories(response.data);
-        console.log("API Response:", response.data);
       } catch (error) {
         setError("Không thể tải danh mục");
       } finally {
         setLoading(false);
       }
     };
-
     fetchCategories();
-  }, []); // Chạy một lần khi component mount
-  if (loading) return <p>Đang tải danh mục...</p>;
-  if (error) return <p>Lỗi: {error}</p>;
+  }, []);
+
+  const handleSelect = (
+    categoryId: string,
+    parentCategoryId: string | null,
+    event: React.MouseEvent
+  ) => {
+    event.stopPropagation();
+
+    // ✅ Find the selected category
+    const category = !parentCategoryId
+      ? categories.find((cat) => cat.id === categoryId)
+      : categories.find((cat) => cat.id === parentCategoryId);
+
+    if (!category) return;
+
+    const breadcrumbPath = [
+      { id: "home", name: "Home" },
+      ...getBreadcrumbPath(category),
+    ];
+
+    setBreadcrumb(breadcrumbPath);
+
+    // ✅ Update Filters
+    setFilters((prevFilters: any) => ({
+      ...prevFilters,
+      categoryId,
+      parentId: parentCategoryId,
+    }));
+
+    setIsDropdownOpen(false);
+    setOpenSubMenu(null);
+  };
+
+  const getBreadcrumbPath = (category: any): { id: string; name: string }[] => {
+    if (!category) return [];
+
+    // ✅ Prevents unnecessary calls
+    const parentPath = category.parentCategory
+      ? getBreadcrumbPath(
+          categories.find((cat) => cat.id === category.parentCategory.id)
+        )
+      : [];
+
+    return [...parentPath, { id: category.id, name: category.name }];
+  };
 
   return (
     <div className="fixed top-[75px] left-0 bg-white w-full min-h-[50px] z-40">
@@ -174,18 +202,27 @@ export default function Navbar() {
           onChange={handleChange}
           className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-60 mr-2"
         />
-
-        <PriceFilter onApply={handleChange}></PriceFilter>
-
-        <select
-          name="status"
-          onChange={handleChange}
-          className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-40 bg-white mr-2"
-        >
-          <option value="">Chọn trạng thái</option>
-          <option value="ACTIVE">Hoạt động</option>
-          <option value="INACTIVE">Ngừng bán</option>
-        </select>
+      </div>
+      {/* Breadcrumb Navigation */}
+      <div className="float-left">
+        <ul className="flex items-center justify-center space-x-4 font-[sans-serif]">
+          {breadCrumb.map((item, index) => (
+            <React.Fragment key={item.id}>
+              <li
+                className={`text-gray-500 text-base cursor-pointer ${
+                  index === breadCrumb.length - 1
+                    ? "font-bold"
+                    : "hover:text-gray-700"
+                }`}
+              >
+                {item.name}
+              </li>
+              {index < breadCrumb.length - 1 && (
+                <li className="text-gray-500 text-lg">/</li>
+              )}
+            </React.Fragment>
+          ))}
+        </ul>
       </div>
     </div>
   );
