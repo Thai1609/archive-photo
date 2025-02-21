@@ -1,4 +1,5 @@
 "use client";
+import { useAuth } from "@/context/AuthProvider";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -11,6 +12,8 @@ export default function ProductDetailPage() {
     return <div>Loading...</div>;
   }
   const [products, setProducts] = useState<any>(null);
+  const [images, setImages] = useState<{ imageUrl: string }[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!params?.id) return;
@@ -33,51 +36,48 @@ export default function ProductDetailPage() {
     fetchProductData();
   }, [params.id]);
 
+  useEffect(() => {
+    setImages(products?.images);
+    setSelectedImage(products?.images[0]?.imageUrl);
+
+    console.log("Show product image: ", products?.images);
+  }, [products]);
+
+  const userProfile = useAuth();
+
   return (
     <div className="font-[sans-serif] p-4 bg-gray-100">
       <div className="lg:max-w-6xl max-w-xl mx-auto">
         <div className="grid items-start grid-cols-1 lg:grid-cols-2 gap-8 max-lg:gap-12 max-sm:gap-8">
           <div className="w-full lg:sticky top-0">
             <div className="flex flex-col gap-4">
-              <div className="bg-white shadow p-2">
-                <img
-                  src="https://readymadeui.com/images/sunscreen-img-1.webp"
-                  alt="Product"
-                  className="w-full  aspect-[11/8] object-cover object-top"
-                />
-              </div>
-              <div className="bg-white p-2 w-full max-w-full overflow-auto">
-                <div className="flex justify-between flex-row gap-4 shrink-0">
+              {selectedImage ? (
+                <div className="bg-white shadow p-2 mb-4">
                   <img
-                    src="https://readymadeui.com/images/sunscreen-img-1.webp"
-                    alt="Product1"
-                    className="w-16 h-16 aspect-square object-cover object-top cursor-pointer shadow-md border-b-2 border-black"
+                    src={selectedImage}
+                    alt="Product"
+                    className="w-full  aspect-[11/8] object-cover object-top"
                   />
-                  <img
-                    src="https://readymadeui.com/images/sunscreen-img-2.webp"
-                    alt="Product2"
-                    className="w-16 h-16 aspect-square object-cover object-top cursor-pointer shadow-md border-b-2 border-transparent"
-                  />
-                  <img
-                    src="https://readymadeui.com/images/sunscreen-img-3.webp"
-                    alt="Product3"
-                    className="w-16 h-16 aspect-square object-cover object-top cursor-pointer shadow-md border-b-2 border-transparent"
-                  />
-                  <img
-                    src="https://readymadeui.com/images/sunscreen-img-4.webp"
-                    alt="Product4"
-                    className="w-16 h-16 aspect-square object-cover object-top cursor-pointer shadow-md border-b-2 border-transparent"
-                  />
-                  <img
-                    src="https://readymadeui.com/images/sunscreen-img-5.webp"
-                    alt="Product5"
-                    className="w-16 h-16 aspect-square object-cover object-top cursor-pointer shadow-md border-b-2 border-transparent"
-                  />
-                  <img
-                    src="https://readymadeui.com/images/sunscreen-img-6.webp"
-                    alt="Product6"
-                    className="w-16 h-16 aspect-square object-cover object-top cursor-pointer shadow-md border-b-2 border-transparent"
-                  />
+                </div>
+              ) : (
+                <p>Loading images...</p>
+              )}
+              <div className="bg-white p-2 w-full overflow-x-auto">
+                <div className="flex gap-4 whitespace-nowrap">
+                  {/* Dynamic Thumbnails */}
+                  {images?.map((thumb, i) => (
+                    <img
+                      key={i}
+                      src={thumb.imageUrl}
+                      alt={`Thumbnail ${i + 1}`}
+                      className={`w-16 h-16 aspect-square object-cover object-top cursor-pointer shadow-md border-b-2 ${
+                        selectedImage === thumb.imageUrl
+                          ? "border-black"
+                          : "border-transparent"
+                      }`}
+                      onClick={() => setSelectedImage(thumb.imageUrl)} // Update main image on click
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -138,18 +138,18 @@ export default function ProductDetailPage() {
               </div>
               <div className="mt-2">
                 <p className="text-gray-500 mt-1 text-sm">
-                  Contains Vitamin E and Green Tea Extract to protect, nourish,
-                  and hydrate the skin while providing antioxidant benefits to
-                  combat free radicals and promote a healthy complexion.
+                  {products?.description}
                 </p>
               </div>
               <div className="flex items-center flex-wrap gap-2 mt-4">
                 <p className="text-gray-500 text-base"></p>
                 <h4 className="text-purple-800 text-2xl sm:text-3xl font-bold">
-                  $12
+                  {products?.price}
                 </h4>
                 <div className="flex py-1 px-2 bg-purple-600 font-semibold !ml-4">
-                  <span className="text-white text-sm">save 10%</span>
+                  <span className="text-white text-sm">
+                    {products?.discount}
+                  </span>
                 </div>
               </div>
               <div>
@@ -158,54 +158,63 @@ export default function ProductDetailPage() {
                 </h4>
               </div>
             </div>
+            <div className="mt-4 flex flex-wrap gap-4">
+              <button
+                type="button"
+                className="px-4 py-3 border border-gray-300 bg-white hover:bg-gray-50 text-gray-800 text-sm font-semibold"
+              >
+                Liên hệ: 0343651367
+              </button>
+              <button className="flex items-center justify-center gap-x-2 bg-purple-600 text-white font-bold p-3 rounded-lg shadow-lg hover:bg-purple-700 transition">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-6 h-6 text-white"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15a2 2 0 0 1-2 2H8l-5 5V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                <span>Chat</span>
+              </button>
+            </div>
+
             <hr className="my-6 border-gray-300" />
-            <div>
-              <div className="flex gap-2 items-center border border-gray-300 bg-white px-3 py-2.5 w-max">
-                <button type="button" className="border-none outline-none">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-2.5 h-2.5"
-                    viewBox="0 0 121.805 121.804"
-                  >
-                    <path
-                      d="M7.308 68.211h107.188a7.309 7.309 0 0 0 7.309-7.31 7.308 7.308 0 0 0-7.309-7.309H7.308a7.31 7.31 0 0 0 0 14.619z"
-                      data-original="#000000"
-                    />
-                  </svg>
-                </button>
-                <span className="text-gray-800 text-sm font-semibold px-3">
-                  1
-                </span>
-                <button type="button" className="border-none outline-none">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-2.5 h-2.5"
-                    viewBox="0 0 512 512"
-                  >
-                    <path
-                      d="M256 509.892c-19.058 0-34.5-15.442-34.5-34.5V36.608c0-19.058 15.442-34.5 34.5-34.5s34.5 15.442 34.5 34.5v438.784c0 19.058-15.442 34.5-34.5 34.5z"
-                      data-original="#000000"
-                    />
-                    <path
-                      d="M475.392 290.5H36.608c-19.058 0-34.5-15.442-34.5-34.5s15.442-34.5 34.5-34.5h438.784c19.058 0 34.5 15.442 34.5 34.5s-15.442 34.5-34.5 34.5z"
-                      data-original="#000000"
-                    />
-                  </svg>
-                </button>
-              </div>
-              <div className="mt-4 flex flex-wrap gap-4">
-                <button
-                  type="button"
-                  className="px-4 py-3 w-[45%] border border-gray-300 bg-white hover:bg-gray-50 text-gray-800 text-sm font-semibold"
-                >
-                  Add to cart
-                </button>
-                <button
-                  type="button"
-                  className="px-4 py-3 w-[45%] border border-purple-600 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold"
-                >
-                  Buy it now
-                </button>
+            <div className="mt-4 flex flex-wrap gap-4">
+              <div>
+                <div className="bg-white shadow-lg rounded-lg p-4 w-80">
+                  <div>
+                    <div>
+                      <div className="flex items-center space-x-3">
+                        <img
+                          src="https://via.placeholder.com/50"
+                          alt="Avatar"
+                          className="w-12 h-12 rounded-full"
+                        />
+                        <div>
+                          <h2 className="text-lg font-semibold">Nga Phan</h2>
+                          <p className="text-gray-500 text-sm">
+                            Phản hồi: -- | 0 đã bán
+                          </p>
+                          <p className="text-gray-400 text-xs">
+                            ● Hoạt động 11 giờ trước
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center mt-3">
+                        <button className="text-gray-400 hover:text-yellow-400">
+                          ⭐
+                        </button>
+                        <p className="text-blue-500 text-sm cursor-pointer">
+                          0 đánh giá
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             <hr className="my-6 border-gray-300" />

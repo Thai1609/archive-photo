@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
- import { useAuth } from "../context/AuthProvider";
+import { useAuth } from "../context/AuthProvider";
 
 export default function Header() {
   const { userProfile, logout } = useAuth();
@@ -160,7 +160,6 @@ export default function Header() {
             </ul>
           </div>
           <div className="flex items-center gap-x-6 gap-y-4 ml-auto">
-             
             <div className="flex items-center sm:space-x-8 space-x-6">
               <div className="space-x-5 flex justify-center font-[sans-serif] ">
                 <div className="flex flex-col items-center justify-center gap-0.5 cursor-pointer">
@@ -360,7 +359,7 @@ export default function Header() {
                 </div>
               ) : (
                 <button className="max-lg:hidden px-4 py-2 text-sm rounded-full text-white border-2 border-[#007bff] bg-[#007bff] hover:bg-[#004bff]">
-                  <a href="/auth/login"> Sign In</a>
+                  <a href="/auth/account/login"> Sign In</a>
                 </button>
               )}
 
