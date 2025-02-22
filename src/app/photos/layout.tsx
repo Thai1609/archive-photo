@@ -1,7 +1,7 @@
 "use client";
 
-import Footer from "../../components/Footer";
-import Header from "../../components/Header";
+import Footer from "../../components/display-web/Footer";
+import Header from "../../components/display-web/Header";
 
 export default function Layout({ children }) {
   return (

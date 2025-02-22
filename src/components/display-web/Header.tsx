@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "../context/AuthProvider";
+import { useAuth } from "../../context/AuthProvider";
 
 export default function Header() {
   const { userProfile, logout } = useAuth();
@@ -10,11 +10,6 @@ export default function Header() {
   // const wishlistCount = Object.keys(wishlist).length;
 
   const pathname = usePathname();
-
-  const buttons = [
-    { name: "Home", href: "/photos" },
-    { name: "My Photos", href: "/photos/galleries" },
-  ];
 
   useEffect(() => {
     const toggleOpen = document.getElementById("toggleOpen");
@@ -140,7 +135,7 @@ export default function Header() {
                   )}
                 </div>
               </li>
-              {buttons.map((button) => {
+              {/* {buttons.map((button) => {
                 const isActive = true ? pathname === button.href : "";
                 return (
                   <li key={button.name}>
@@ -156,7 +151,7 @@ export default function Header() {
                     </Link>
                   </li>
                 );
-              })}
+              })} */}
             </ul>
           </div>
           <div className="flex items-center gap-x-6 gap-y-4 ml-auto">

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useReducer, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useAuth } from "@/context/AuthProvider";
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/display-web/Navbar";
 import Image from "next/image";
 import { useProductFilter } from "@/context/ProductFilterProvider";
 
