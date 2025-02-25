@@ -5,7 +5,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
 
 const backendLoginUrl = "http://localhost:8080/api/auth/login";
-const backendGoogleUrl = "http://localhost:8080/api/auth/google";
+
+// const [userLogin, setUserLogin] = useState<LoginWithProvider | null>(null);
 
 export const authOptions = {
   providers: [
@@ -25,14 +26,6 @@ export const authOptions = {
     FacebookProvider({
       clientId: process.env.FACEBOOK_CLIENT_ID as string,
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET as string,
-      authorization: {
-        url: "https://www.facebook.com/v18.0/dialog/oauth",
-        params: {
-          scope: "email public_profile",
-          auth_type: "rerequest",
-          display: "popup",
-        },
-      },
     }),
 
     CredentialsProvider({
@@ -69,29 +62,45 @@ export const authOptions = {
 
   callbacks: {
     async signIn({ user, account, profile }) {
+      if (account?.provider === "credentials") {
+        return true;
+      }
+
+      const backendProviderUrl =
+        "http://localhost:8080/api/auth/login-with-provider";
+      let newUser: LoginWithProvider;
+
       if (account?.provider === "google") {
-        if (!profile) {
-          console.error("❌ No profile returned from Google!");
-          return false;
-        }
-        try {
-          console.log("🔍 Google Profile Data:", profile);
+        newUser = {
+          email: user.email,
+          provider: "GOOGLE",
+          providerId: user.id,
+          name: user.name || profile.name,
+          imageUrl: profile.picture || user.image,
+        };
+      } else if (account?.provider === "facebook") {
+        newUser = {
+          email: user.email,
+          provider: "FACEBOOK",
+          providerId: user.id,
+          name: user.name || profile.name,
+          imageUrl: profile.picture?.data?.url || user.image,
+        };
+      } else {
+        return false;
+      }
 
-          const response = await axios.post(backendGoogleUrl, {
-            email: user.email,
-            provider: "GOOGLE",
-            providerId: user.id,
-            name: user.name || profile.name,
-            imageUrl: profile.picture || user.image, // ✅ Ensure profile picture is used
-          });
+      try {
+        console.log("Show Profile Data:", profile);
 
-          const backendData = response.data.result;
+        const response = await axios.post(backendProviderUrl, newUser);
 
-          user.backendToken = backendData.token; // ✅ Store backend token from Spring Boot
-        } catch (error) {
-          console.error("❌ Google sign-in error:", error);
-          return false;
-        }
+        const backendData = response.data.result;
+
+        user.backendToken = backendData.token; // ✅ Store backend token from Spring Boot
+      } catch (error) {
+        console.error("❌Sign-in error:", error);
+        return false;
       }
       return true;
     },
@@ -100,11 +109,11 @@ export const authOptions = {
       if (user) {
         token.backendToken = user.backendToken;
         token.email = user.email;
-
-        if (account?.provider === "google" && profile) {
+        token.sub = user.id;
+        if (user.id) {
+          token.provider = account?.provider;
           token.name = profile.name;
           token.image = profile.picture;
-          token.sub = profile.sub;
         }
 
         if (!token.exp) {
@@ -120,6 +129,8 @@ export const authOptions = {
       session.user.name = token.name;
       session.user.image = token.image;
       session.user.sub = token.sub;
+      session.user.provider = token.provider;
+
       session.exp = token.exp ? new Date(token.exp * 1000).toISOString() : null;
 
       return session;

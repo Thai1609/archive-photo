@@ -1,47 +1,13 @@
+import { useAuth } from "@/context/AuthProvider";
 import React, { useEffect, useState } from "react";
 
 export default function ModalAccountUserPage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const [image, setImage] = useState("");
-  const [user, setUser] = useState(Object);
+  const { userProfile } = useAuth();
   const [arrCountry, setArrCountry] = useState(["+1", "+83", "+51", "+91"]);
   const [countryCode, setCountryCode] = useState("+1");
   const [phoneNumber, setPhoneNumber] = useState("");
-
-  const userData = localStorage.getItem("user");
-  useEffect(() => {
-    if (userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-        const phone = parsedUser.phoneNumber;
-
-        if (phone) {
-          const code = phone.split(" ");
-
-          setCountryCode(code ? code[0] : ""); // Set the country code
-          setPhoneNumber(code ? code[1] : ""); // Set the phone number
-        }
-      } catch (error) {
-        console.error("Failed to parse tags from localStorage:", error);
-      }
-    }
-  }, []);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result;
-        if (typeof result === "string") {
-          setImage(result); // Update the image state with the new file URL (only if it's a string)
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
@@ -55,9 +21,9 @@ export default function ModalAccountUserPage() {
       <h2 className="text-2xl font-semibold text-left mb-6">View Account</h2>
 
       <div className="flex flex-col md:flex-row items-center md:space-x-6 space-y-4 md:space-y-0">
-        {user.avatarUrl ? (
+        {userProfile?.avatarUrl ? (
           <img
-            src={image}
+            src={userProfile?.avatarUrl}
             alt="Avatar"
             className="w-24 h-24 rounded-full shadow-md object-cover"
           />
@@ -75,12 +41,7 @@ export default function ModalAccountUserPage() {
             className="flex items-center justify-center px-4 py-2 bg-white text-blue-500 border border-blue-500 rounded hover:bg-blue-500 hover:text-white transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             Change
-            <input
-              onChange={handleFileChange}
-              type="file"
-              id="uploadFile"
-              className="hidden"
-            />
+            <input type="file" id="uploadFile" className="hidden" />
           </label>
 
           <button
@@ -95,7 +56,7 @@ export default function ModalAccountUserPage() {
           <textarea
             id="description"
             placeholder="Description"
-            defaultValue={user.description}
+            defaultValue={userProfile?.description}
             className="resize-none p-4 bg-white w-[360px] block text-sm border border-gray-300 outline-blue-500 rounded focus:ring-2 focus:ring-blue-400"
             rows={4}
           ></textarea>
@@ -113,7 +74,7 @@ export default function ModalAccountUserPage() {
               id="fullName"
               type="text"
               placeholder="Full name"
-              defaultValue={user.firstName}
+              defaultValue={userProfile?.fullName}
               className="px-4 py-3 text-base rounded-md bg-white border border-gray-400 w-full outline-blue-500 focus:ring-2 focus:ring-blue-400"
             />
           </div>
@@ -128,7 +89,7 @@ export default function ModalAccountUserPage() {
               id="address"
               type="text"
               placeholder="Address"
-              defaultValue={user.address}
+              defaultValue={userProfile?.address}
               className="px-4 py-3 text-base rounded-md bg-white border border-gray-400 w-full outline-blue-500 focus:ring-2 focus:ring-blue-400"
             />
           </div>
@@ -188,7 +149,7 @@ export default function ModalAccountUserPage() {
             <input
               id="birthday"
               type="date"
-              defaultValue={user.dob}
+              defaultValue={userProfile?.dob}
               className="px-4 py-3 bg-[#f0f1f2] text-black w-full text-sm outline-[#007bff] rounded focus:ring-2 focus:ring-blue-400"
             />
           </div>

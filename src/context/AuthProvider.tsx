@@ -28,7 +28,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [email, setEmail] = useState("");
-  const [providerId, setProviderId] = useState("");
+  const [providerLogin, setProviderLogin] = useState<string>();
+  const [providerId, setProviderId] = useState<string>();
 
   const { data: session } = useSession();
 
@@ -38,7 +39,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     if (session?.backendToken) {
       setToken(session.backendToken);
-      setProviderId(session.user?.sub);
+      setProviderLogin(session?.user?.provider);
+      setProviderId(session?.user?.sub);
     }
     // ✅ Load email from session
     if (session?.user?.email) {
@@ -53,7 +55,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const formInforUser = {
         email,
-        provider: providerId ? "GOOGLE" : null,
+        provider: providerLogin,
         providerId: providerId,
       };
 

@@ -204,7 +204,7 @@ export default function Navbar() {
         />
       </div>
       {/* Breadcrumb Navigation */}
-      <div className="float-left">
+      <div className="float-left ml-2">
         <ul className="flex items-center justify-center space-x-4 font-[sans-serif]">
           {breadCrumb.map((item, index) => (
             <React.Fragment key={item.id}>

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthProvider";
 
 export default function Header() {
@@ -59,10 +58,16 @@ export default function Header() {
       };
     }
   });
-
+  const router = useRouter();
+  const handleClickUpload = () => {
+    router.push("/photos/product");
+  };
   return (
     <header className="fixed top-0 left-0 w-full bg-orange-400 border-b py-3 sm:px-6 px-4 font-[sans-serif] min-h-[75px] tracking-wide z-50">
       <div className="flex max-w-screen-xl mx-auto w-full">
+        {/* <a className="text-sm text-red-500 " onClick={logout}>
+          Logout
+        </a> */}
         <div className="flex flex-wrap items-center lg:gap-y-2 gap-4 w-full">
           <a href="/photos" className="max-sm:hidden">
             <img
@@ -250,24 +255,32 @@ export default function Header() {
                   <div className="flex items-center max-lg:ml-auto space-x-5">
                     <div className="flex items-center ml-auto ">
                       {userProfile ? (
-                        <div
-                          id="toggleProfile"
-                          className="flex flex-wrap items-center cursor-pointer border border-gray-300 rounded-lg w-max px-1.5 py-1 mx-auto "
-                        >
-                          <img
-                            src={
-                              userProfile.avatarUrl
-                                ? userProfile.avatarUrl
-                                : "https://readymadeui.com/team-1.webp"
-                            }
-                            className="w-10 h-10 rounded-lg"
-                          />
-                          <div className="mx-4">
-                            <p className="text-sm text-gray-800 font-semibold">
-                              Hi, {userProfile.fullName}
-                            </p>
+                        <>
+                          <div
+                            id="toggleProfile"
+                            className="flex flex-wrap items-center cursor-pointer border border-gray-300 rounded-lg w-max px-1.5 py-1 mx-auto mr-3"
+                          >
+                            <img
+                              src={
+                                userProfile.avatarUrl
+                                  ? userProfile.avatarUrl
+                                  : "https://readymadeui.com/team-1.webp"
+                              }
+                              className="w-10 h-10 rounded-lg"
+                            />
+                            <div className="mx-4">
+                              <p className="text-sm text-gray-800 font-semibold">
+                                Hi, {userProfile.fullName}
+                              </p>
+                            </div>
                           </div>
-                        </div>
+                          <button
+                            onClick={handleClickUpload}
+                            className="flex items-center gap-2 px-6 py-2 text-white font-semibold bg-blue-500 hover:bg-blue-600 rounded-lg shadow-md"
+                          >
+                            ĐĂNG TIN
+                          </button>
+                        </>
                       ) : (
                         <></>
                       )}
@@ -276,7 +289,7 @@ export default function Header() {
                           <div
                             id="collapseMenuProfile"
                             style={{ display: "none" }}
-                            className="bg-white z-18 shadow-lg py-6 px-1 sm:min-w-[150px] max-sm:min-w-[250px] max-sm:-right-32 absolute right-2 top-7"
+                            className="bg-white z-18 shadow-lg py-6 px-1 sm:min-w-[150px] max-sm:min-w-[250px] max-sm:-right-32 absolute right-[150px] top-7"
                           >
                             <>
                               <ul className="space-y-1.5">
