@@ -1,4 +1,5 @@
 "use client";
+import { useAuth } from "@/context/AuthProvider";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
@@ -15,6 +16,7 @@ export default function PostForm() {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { userProfile } = useAuth();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -48,10 +50,32 @@ export default function PostForm() {
     }
   }, [selectedCategory, dataCategories]);
 
-  //upload file
+  //upload product
+  const [productData, setProductData] = useState({
+    name: "",
+    description: "",
+    price: "",
+    categoryId: "",
+    brandId: "",
+    status: "used",
+    userId: "",
+  });
+
+  //set id user upload
+  useEffect(() => {
+    if (userProfile?.id) {
+      setProductData((prevData) => ({ ...prevData, userId: userProfile.id }));
+    }
+  }, [userProfile]);
+  //set data input
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setProductData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const [images, setImages] = useState<File[]>([]);
   const [coverImage, setCoverImage] = useState<File | null>(null);
-
+  //set data image
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const selectedFiles = Array.from(event.target.files);
@@ -70,25 +94,47 @@ export default function PostForm() {
   };
 
   const handleUpload = async () => {
-    if (images.length === 0) {
-      alert("Vui lòng chọn ít nhất một hình ảnh!");
+    if (!productData.name || images.length === 0) {
+      alert(
+        "Vui lòng nhập thông tin chi tiết sản phẩm và chọn ít nhất một hình ảnh!"
+      );
       return;
     }
 
-    const formData = new FormData();
+    const formDataProduct = new FormData();
+    // Convert JSON to Blob
+    const productBlob = new Blob([JSON.stringify(productData)], {
+      type: "application/json",
+    });
+    formDataProduct.append("request", productBlob);
+
+    // Append images
     images.forEach((image) => {
-      formData.append("files", image);
+      formDataProduct.append("file", image);
     });
 
     try {
-      const response = await fetch("http://localhost:8080/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        "http://localhost:8080/api/products/upload-product",
+        {
+          method: "POST",
+          body: formDataProduct,
+        }
+      );
 
       if (response.ok) {
         alert("Tải lên thành công!");
-        setImages([]); // Reset after upload
+        // Reset form after success
+        setProductData({
+          name: "",
+          description: "",
+          price: "",
+          categoryId: "",
+          brandId: "",
+          status: "used",
+          userId: "",
+        });
+        setImages([]);
       } else {
         alert("Lỗi khi tải lên!");
       }
@@ -98,18 +144,20 @@ export default function PostForm() {
     }
   };
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+    <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg mb-5">
       <h2 className="text-xl font-bold mb-4">Chọn danh mục sản phẩm</h2>
 
       {/* Parent Category Dropdown */}
       <div className="w-full max-w-sm mb-4">
         <select
+          name="categoryId"
           value={selectedCategory?.id || ""}
           onChange={(e) => {
             const selected = categories.find(
               (cat) => cat.id === parseInt(e.target.value, 10)
             );
             setSelectedCategory(selected || null);
+            handleInputChange(e);
           }}
           className="w-full border rounded-lg p-3 bg-white shadow-sm focus:ring focus:ring-blue-300"
         >
@@ -127,12 +175,14 @@ export default function PostForm() {
       <h2 className="text-xl font-bold mb-4">Chọn chi tiết danh mục</h2>
       <div className="w-full max-w-sm mb-4">
         <select
+          name="categoryId"
           value={selectedSubCategory?.id || ""}
           onChange={(e) => {
             const selected = subCategories.find(
               (cat) => cat.id === parseInt(e.target.value, 10)
             );
             setSelectedSubCategory(selected);
+            handleInputChange(e);
           }}
           className="w-full border rounded-lg p-3 bg-white shadow-sm focus:ring focus:ring-blue-300"
         >
@@ -276,23 +326,32 @@ export default function PostForm() {
       </div>
 
       <input
+        name="price"
+        onChange={handleInputChange}
         className="w-full border rounded-lg p-3 mb-3"
         placeholder="Giá bán *"
       />
       <h2 className="text-xl font-bold mb-4">Tiêu đề bài đăng:</h2>
       <input
+        name="name"
+        onChange={handleInputChange}
         className="w-full border rounded-lg p-3 mb-3"
         placeholder="Tiêu đề *"
       />
       <h2 className="text-xl font-bold mb-4">Mô tả chi tiết:</h2>
       <textarea
         id="description"
+        name="description"
+        onChange={handleInputChange}
         placeholder="Mô tả *"
         className="resize-none p-4 bg-white w-full block text-sm border border-gray-300 outline-blue-500 rounded focus:ring-2 focus:ring-blue-400"
         rows={8}
       ></textarea>
 
-      <button className="w-full bg-blue-500 text-white p-3 rounded-lg mt-5">
+      <button
+        onClick={handleUpload}
+        className="  w-56 bg-blue-500 text-white p-3 rounded-lg mt-5"
+      >
         Đăng tin
       </button>
     </div>

@@ -97,7 +97,7 @@ export default function HomePage() {
                       }
                     >
                       <Image
-                        src={product.imageUrl}
+                        src={product?.images[0]?.imageUrl}
                         alt={product.name}
                         width={300} // Điều chỉnh kích thước theo nhu cầu
                         height={320}
