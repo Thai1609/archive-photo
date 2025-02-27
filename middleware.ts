@@ -17,11 +17,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!token) {
-    if (!pathname.startsWith("/auth")) {
-      return NextResponse.redirect(new URL("/auth/account/login", req.url));
-    }
-  }
+  // if (!token) {
+  //   if (!pathname.startsWith("/auth")) {
+  //     return NextResponse.redirect(new URL("/auth/account/login", req.url));
+  //   }
+  // }
 
   if (token && pathname.startsWith("/auth")) {
     return NextResponse.redirect(new URL("/photos", req.url));

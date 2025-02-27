@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import ModalForgotPassword from "@/components/ModalForgotPassword";
 import "react-toastify/dist/ReactToastify.css";
 import { signIn } from "next-auth/react";
-import { loginUser } from "../../../../lib/firebase";
 
 export default function LoginPage() {
   //Open modal confirm email
