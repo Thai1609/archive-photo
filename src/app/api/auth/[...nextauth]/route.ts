@@ -3,10 +3,9 @@ import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
 import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
+import { loginUser } from "../../../../../lib/firebase";
 
 const backendLoginUrl = "http://localhost:8080/api/auth/login";
-
-// const [userLogin, setUserLogin] = useState<LoginWithProvider | null>(null);
 
 export const authOptions = {
   providers: [
@@ -40,6 +39,10 @@ export const authOptions = {
       },
       async authorize(credentials) {
         try {
+          //Login with firebase
+          await loginUser(credentials?.email, credentials?.password);
+
+          //Login with api
           const response = await axios.post(backendLoginUrl, {
             email: credentials?.email,
             password: credentials?.password,
@@ -48,6 +51,7 @@ export const authOptions = {
           const dataBackend = response.data.result;
           if (dataBackend) {
             return {
+              //Login with firebase
               email: credentials?.email,
               backendToken: dataBackend.token,
             };

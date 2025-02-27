@@ -62,6 +62,9 @@ export default function Header() {
   const handleClickUpload = () => {
     router.push("/photos/product");
   };
+  const handleClickMessages = () => {
+    router.push("/photos/message");
+  };
   return (
     <header className="fixed top-0 left-0 w-full bg-orange-400 border-b py-3 sm:px-6 px-4 font-[sans-serif] min-h-[75px] tracking-wide z-50">
       <div className="flex max-w-screen-xl mx-auto w-full">
@@ -188,7 +191,10 @@ export default function Header() {
                   </span>
                 </div>
 
-                <div className="flex flex-col items-center justify-center gap-0.5 cursor-pointer">
+                <div
+                  onClick={handleClickMessages}
+                  className="flex flex-col items-center justify-center gap-0.5 cursor-pointer"
+                >
                   <div className="relative">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

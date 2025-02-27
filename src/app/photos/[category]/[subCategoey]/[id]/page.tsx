@@ -1,11 +1,12 @@
 "use client";
 import { useAuth } from "@/context/AuthProvider";
 import axios from "axios";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 export default function ProductDetailPage() {
   const params = useParams(); // ✅ Get dynamic params from the URL
+  const router = useRouter();
 
   // ✅ Handle the case where params might be null
   if (!params || !params.id || !params.category) {
@@ -44,6 +45,10 @@ export default function ProductDetailPage() {
   }, [products]);
 
   const userProfile = useAuth();
+
+  const goToChat = () => {
+    router.push(`/photos/message/chat?mailSeller=${products?.seller}`);
+  };
 
   return (
     <div className="font-[sans-serif] p-4 bg-gray-100">
@@ -163,9 +168,9 @@ export default function ProductDetailPage() {
                 type="button"
                 className="px-4 py-3 border border-gray-300 bg-white hover:bg-gray-50 text-gray-800 text-sm font-semibold"
               >
-                Liên hệ: 0343651367
+                Liên hệ: {products?.user?.userProfile?.phoneNumber}
               </button>
-              <button className="flex items-center justify-center gap-x-2 bg-purple-600 text-white font-bold p-3 rounded-lg shadow-lg hover:bg-purple-700 transition">
+              <button  onClick={goToChat} className="flex items-center justify-center gap-x-2 bg-purple-600 text-white font-bold p-3 rounded-lg shadow-lg hover:bg-purple-700 transition">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="w-6 h-6 text-white"
@@ -195,7 +200,7 @@ export default function ProductDetailPage() {
                           className="w-12 h-12 rounded-full"
                         />
                         <div>
-                          <h2 className="text-lg font-semibold">Nga Phan</h2>
+                          <h2 className="text-lg font-semibold">{products?.user?.userProfile?.fullName}</h2>
                           <p className="text-gray-500 text-sm">
                             Phản hồi: -- | 0 đã bán
                           </p>

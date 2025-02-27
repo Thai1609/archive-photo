@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { registerUser } from "../../../../lib/firebase";
 
 export default function RegisterPage() {
   const url = "http://localhost:8080/api/auth/signup";
@@ -27,16 +28,19 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    setMessage(""); // ✅ Clear previous errors
+    setMessage("");
 
-    axios
+    // Đăng ký vào database bằng api
+    await axios
       .post(url, formData, {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
       })
       .then((response) => {
+        // Đăng ký trên Firebase Auth
+        registerUser(formData.email, formData.password, formData.name);
         setMessage(response.data?.result || "Registration successful!");
-        router.refresh();
+        router.push("/auth/account/login");
       })
       .catch((error) => {
         setMessage(
