@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import ModalForgotPassword from "@/components/ModalForgotPassword";
 import "react-toastify/dist/ReactToastify.css";
 import { signIn } from "next-auth/react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../../../lib/firebase";
 
 export default function LoginPage() {
   //Open modal confirm email
@@ -21,12 +23,13 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
-
+    //get user with firebase
+    await signInWithEmailAndPassword(auth, email, password);
     //Login with api
     const response = await signIn("credentials", {
       email,
       password,
-      redirect: false, // ✅ Không tự động chuyển hướng
+      redirect: false,
     });
 
     if (response?.error) {

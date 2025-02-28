@@ -1,68 +1,91 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { onChildAdded, push, ref, set } from "firebase/database";
+import { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { push, ref, serverTimestamp } from "firebase/database";
 import { auth, db } from "../../../lib/firebase";
 import ConversationContent from "./ConversationContent";
 
-export default function ChatPage() {
+export default function ChatForm({ chatRoomId }) {
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
   const [user] = useAuthState(auth);
-  const [messages, setMessages] = useState("");
 
-  const [sellerId, setSellerId] = useState("");
+  useEffect(() => {
+    if (!chatRoomId) return;
+    const messagesRef = ref(db, `chats/${chatRoomId}/messages`);
 
-  if (!user) {
-    return <p className="text-center mt-4">Please log in to chat.</p>;
-  }
-  const handlerSendMessage = (event: any) => {
-    event.preventDefault();
-
-    if (!messages) {
-      console.error("Vui long nhap noi dung!");
-    }
-
-    const data = {
-      messages,
-      from: "Michael", // Người gửi
-      to: "uid_to", // ID người nhận
-      createdAt: serverTimestamp(), // Timestamp hiện tại
-      user1: "Michael", // Lưu username người gửi
-      user2: "uid", // Lưu UID của người nhận
-    };
-    push(ref(db, "conversations"), data).then(() => {
-      setMessages("");
-      console.log("Send Ok");
+    const unsubscribe = onChildAdded(messagesRef, (snapshot) => {
+      const newMessage = snapshot.val();
+      setMessages((prev) => [...prev, newMessage]);
     });
+
+    return () => unsubscribe();
+  }, [chatRoomId]);
+
+  const sendMessage = async () => {
+    if (!newMessage.trim()) return;
+    const messagesRef = ref(db, `chats/${chatRoomId}/messages`);
+    const newMessageRef = push(messagesRef);
+
+    await set(newMessageRef, {
+      senderId: user?.uid,
+      senderName: user?.displayName,
+      text: newMessage,
+      createdAt: Date.now(),
+    });
+
+    setNewMessage("");
   };
 
   return (
-    <div className="flex flex-col min-h-[60vh] bg-gray-100 p-4 max-w-lg mx-auto shadow-lg rounded-lg">
-      <div className="border-b p-4 bg-white rounded-t-lg">
-        <h2 className="font-bold text-center">Chat with Seller {sellerId}</h2>
-      </div>
+    <>
+      <div className="w-2/3 bg-gray-50 flex flex-col min-h-[60vh]">
+        <div className="bg-white p-4 border-b flex items-center">
+          <img
+            // src={user?.photoURL}
+            alt="Avatar"
+            className="w-10 h-10 rounded-full mr-3"
+          />
+          <div>
+            <h1 className="text-lg font-semibold">{user?.displayName}</h1>
+            <p className="text-sm text-gray-500">Hoạt động trước</p>
+          </div>
+        </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 h-96 bg-white rounded-b-lg">
-        <ConversationContent></ConversationContent>
-      </div>
+        <div className="overflow-y-auto p-4 space-y-3 max-h-[55vh]">
+          <ConversationContent messages={messages} />
+        </div>
 
-      <form
-        onSubmit={handlerSendMessage}
-        className="p-3 border-t bg-white flex rounded-b-lg"
-      >
-        <input
-          type="text"
-          className="flex-1 p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Type a message..."
-          value={messages}
-          onChange={(e) => setMessages(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded-full ml-2 hover:bg-blue-600 transition"
-        >
-          Send
-        </button>
-      </form>
-    </div>
+        <div className="p-4 bg-white border-t flex items-center">
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Nhập tin nhắn..."
+            className="flex-1 p-2 border rounded-lg"
+            maxLength={500}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && newMessage.trim()) {
+                sendMessage();
+              }
+            }}
+          />
+          <button
+            onClick={sendMessage}
+            disabled={!newMessage.trim()} // Vô hiệu hóa nếu không có nội dung
+            className={`ml-2 px-4 py-2 rounded-lg ${
+              newMessage.trim()
+                ? "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-gray-400 text-gray-200 cursor-not-allowed"
+            }`}
+          >
+            Gửi
+          </button>
+        </div>
+        <div className="text-left text-sm text-gray-500 mx-5 mb-2">
+          {500 - newMessage.length}/500
+        </div>
+      </div>
+    </>
   );
 }

@@ -10,6 +10,8 @@ interface UserProfile {
   gender: string;
 
   phone: string;
+  
+  uid: string;
 
   dob: string;
   // Add more properties as needed

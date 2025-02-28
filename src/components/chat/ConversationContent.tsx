@@ -1,31 +1,23 @@
-import { onValue, ref } from "firebase/database";
-import React, { useEffect, useState } from "react";
-import { db } from "../../../lib/firebase";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "../../../lib/firebase";
 
-export default function ConversationContent() {
-  const [conversations, setConversations] = useState<any[]>([]);
-  useEffect(() => {
-    onValue(ref(db, "conversations"), (snap) => {
-      if (snap.val()) {
-        const items: any[] = [];
+export default function ConversationContent({ messages }) {
+  const [user] = useAuthState(auth);
 
-        snap.forEach((item) => {
-          items.push({
-            key: item.key,
-            ...item.val(),
-          });
-        });
-        setConversations(items);
-      }
-    });
-  });
   return (
-    <div>
-      <ul>
-        {conversations.map((conv) => (
-          <li key={conv.key}>{conv.messages}</li>
-        ))}
-      </ul>
-    </div>
+    <ul className="space-y-2 min-h-[55vh]">
+      {messages.map((msg, index) => (
+        <li
+          key={index}
+          className={`p-3 rounded-lg break-words text-left ${
+            msg.senderId === user?.uid
+              ? "bg-blue-500 text-white self-end ml-auto max-w-[400px]"
+              : "bg-gray-400 text-black self-start mr-auto  max-w-[400px]"
+          }`}
+        >
+          {msg.text}
+        </li>
+      ))}
+    </ul>
   );
 }

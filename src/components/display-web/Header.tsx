@@ -63,7 +63,7 @@ export default function Header() {
     router.push("/photos/product");
   };
   const handleClickMessages = () => {
-    router.push("/photos/message");
+    router.push("/photos/message/chat_room");
   };
   return (
     <header className="fixed top-0 left-0 w-full bg-orange-400 border-b py-3 sm:px-6 px-4 font-[sans-serif] min-h-[75px] tracking-wide z-50">

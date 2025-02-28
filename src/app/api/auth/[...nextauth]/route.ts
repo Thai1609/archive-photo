@@ -3,6 +3,8 @@ import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
 import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../../../../lib/firebase";
 
 const backendLoginUrl = "http://localhost:8080/api/auth/login";
 
@@ -45,9 +47,10 @@ export const authOptions = {
           });
 
           const dataBackend = response.data.result;
+
+
           if (dataBackend) {
             return {
-              //Login with firebase
               email: credentials?.email,
               backendToken: dataBackend.token,
             };

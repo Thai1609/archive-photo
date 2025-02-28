@@ -1,8 +1,11 @@
 "use client";
 import { useAuth } from "@/context/AuthProvider";
 import axios from "axios";
+import { ref, get, set } from "firebase/database";
+import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { db } from "../../../../../../lib/firebase";
 
 export default function ProductDetailPage() {
   const params = useParams(); // ✅ Get dynamic params from the URL
@@ -15,6 +18,7 @@ export default function ProductDetailPage() {
   const [products, setProducts] = useState<any>(null);
   const [images, setImages] = useState<{ imageUrl: string }[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [sellerId, setSellerId] = useState("");
 
   useEffect(() => {
     if (!params?.id) return;
@@ -40,14 +44,39 @@ export default function ProductDetailPage() {
   useEffect(() => {
     setImages(products?.images);
     setSelectedImage(products?.images[0]?.imageUrl);
-
+    setSellerId(products?.user?.userProfile?.uid);
     console.log("Show product image: ", products?.images);
-  }, [products]);
+  }, [products, sellerId]);
 
   const userProfile = useAuth();
+  const buyerId = userProfile.userProfile?.uid || "";
 
-  const goToChat = () => {
-    router.push(`/photos/message/chat?mailSeller=${products?.seller}`);
+  const createChatRoom = async (buyerId: string, sellerId: string) => {
+    const chatRoomId = [buyerId, sellerId].sort().join("_"); // Tạo ID phòng chat
+    const chatRef = ref(db, `chats/${chatRoomId}`);
+    const chatSnapshot = await get(chatRef);
+
+    if (!chatSnapshot.exists()) {
+      await set(chatRef, {
+        participants: {
+          [buyerId]: true,
+          [sellerId]: true,
+        },
+        createdAt: Date.now(),
+      });
+    }
+
+    return chatRoomId;
+  };
+
+  const goToChat = async () => {
+    if (!buyerId || !sellerId) {
+      console.error("🚨 Buyer hoặc Seller ID bị thiếu!");
+      return;
+    }
+    const chatRoomId = await createChatRoom(buyerId, sellerId);
+    sessionStorage.setItem("currentChatRoom", chatRoomId);
+    router.push("/photos/message/chat_room");
   };
 
   return (
@@ -170,7 +199,10 @@ export default function ProductDetailPage() {
               >
                 Liên hệ: {products?.user?.userProfile?.phoneNumber}
               </button>
-              <button  onClick={goToChat} className="flex items-center justify-center gap-x-2 bg-purple-600 text-white font-bold p-3 rounded-lg shadow-lg hover:bg-purple-700 transition">
+              <button
+                onClick={goToChat}
+                className="flex items-center justify-center gap-x-2 bg-purple-600 text-white font-bold p-3 rounded-lg shadow-lg hover:bg-purple-700 transition"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="w-6 h-6 text-white"
@@ -200,7 +232,9 @@ export default function ProductDetailPage() {
                           className="w-12 h-12 rounded-full"
                         />
                         <div>
-                          <h2 className="text-lg font-semibold">{products?.user?.userProfile?.fullName}</h2>
+                          <h2 className="text-lg font-semibold">
+                            {products?.user?.userProfile?.fullName}
+                          </h2>
                           <p className="text-gray-500 text-sm">
                             Phản hồi: -- | 0 đã bán
                           </p>
