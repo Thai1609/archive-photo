@@ -5,7 +5,8 @@ import { ref, get, set } from "firebase/database";
 import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { db } from "../../../../../../lib/firebase";
+import { auth, db } from "../../../../../../lib/firebase";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 export default function ProductDetailPage() {
   const params = useParams(); // ✅ Get dynamic params from the URL
@@ -47,7 +48,8 @@ export default function ProductDetailPage() {
     setSellerId(products?.user?.userProfile?.uid);
     console.log("Show product image: ", products?.images);
   }, [products, sellerId]);
-
+  
+  const [user] = useAuthState(auth);
   const userProfile = useAuth();
   const buyerId = userProfile.userProfile?.uid || "";
 
@@ -62,6 +64,8 @@ export default function ProductDetailPage() {
           [buyerId]: true,
           [sellerId]: true,
         },
+        nameSeller:products?.user?.userProfile?.fullName,
+        nameBuyer:user?.displayName,
         createdAt: Date.now(),
       });
     }

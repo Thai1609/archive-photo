@@ -9,6 +9,7 @@ export default function ChatForm({ chatRoomId }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [user] = useAuthState(auth);
+  const [nameChatWith, setNameChatWith] = useState("");
 
   useEffect(() => {
     if (!chatRoomId) return;
@@ -36,6 +37,7 @@ export default function ChatForm({ chatRoomId }) {
 
     setNewMessage("");
   };
+  const chatWith  = sessionStorage.getItem("chatwith");
 
   return (
     <>
@@ -47,7 +49,7 @@ export default function ChatForm({ chatRoomId }) {
             className="w-10 h-10 rounded-full mr-3"
           />
           <div>
-            <h1 className="text-lg font-semibold">{user?.displayName}</h1>
+            <h1 className="text-lg font-semibold">{chatWith}</h1>
             <p className="text-sm text-gray-500">Hoạt động trước</p>
           </div>
         </div>

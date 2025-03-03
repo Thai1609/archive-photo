@@ -17,9 +17,10 @@ export default function ChatList({ onSelectChat }) {
         setChatRooms([]);
         return;
       }
-console.log()
       const rooms = Object.entries(snapshot.val()).map(([key, value]: any) => ({
         chatRoomId: key,
+        nameBuyer: value.nameBuyer || null,
+        nameSeller: value.nameSeller || null,
         participants: value.participants ? Object.keys(value.participants) : [],
       }));
 
@@ -45,10 +46,20 @@ console.log()
             className="p-2 cursor-pointer hover:bg-gray-100 rounded-lg"
             onClick={() => {
               sessionStorage.setItem("currentChatRoom", chat.chatRoomId);
+              {
+                user?.displayName === chat.nameBuyer
+                  ? sessionStorage.setItem("chatwith", chat.nameSeller)
+                  : sessionStorage.setItem("chatwith", chat.nameBuyer);
+              }
+
               onSelectChat(chat.chatRoomId);
             }}
           >
-            Hội thoại: {chat.chatRoomId}
+            {user?.displayName === chat.nameBuyer ? (
+              <>{chat.nameSeller}</>
+            ) : (
+              <>{chat.nameBuyer}</>
+            )}
           </div>
         ))
       )}
