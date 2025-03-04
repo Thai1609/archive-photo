@@ -23,19 +23,26 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    //get user with firebase
-    await signInWithEmailAndPassword(auth, email, password);
-    //Login with api
-    const response = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
 
-    if (response?.error) {
-      setError(response.error);
-    } else {
-      router.push("/photos");
+    try {
+      //Firebase Authentication
+      await signInWithEmailAndPassword(auth, email, password);
+
+      //API Login with email password
+      const response = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (response?.error) {
+        setError(response.error);
+      } else {
+        router.push("/photos");
+      }
+    } catch (error) {
+      console.error("Error during authentication:", error);
+      setError("Authentication failed. Please try again.");
     }
   };
 
