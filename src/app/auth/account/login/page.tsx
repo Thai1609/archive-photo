@@ -2,18 +2,19 @@
 import { useState } from "react";
 import LoginPage from "../LoginPage";
 import RegisterPage from "../RegisterPage";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 export default function Page() {
-  const [activeTab, setActiveTab] = useState("login"); // ✅ Track which tab is active
+  const [activeTab, setActiveTab] = useState("login");
 
   const handleLoginWithGoogle = async () => {
     await signIn("google");
   };
+
   const handleLoginWithFacebook = async () => {
     await signIn("facebook");
   };
+
   return (
     <div className="font-sans bg-gray-50 min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-4xl mx-auto ">

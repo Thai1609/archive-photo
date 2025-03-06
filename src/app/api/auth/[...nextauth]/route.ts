@@ -4,28 +4,25 @@ import FacebookProvider from "next-auth/providers/facebook";
 import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
 
-const backendLoginUrl = "http://localhost:8080/api/auth/login";
+const BACKEND_LOGIN_URL = "http://localhost:8080/api/auth/login";
+const BACKEND_PROVIDER_URL =
+  "http://localhost:8080/api/auth/login-with-provider";
 
 export const authOptions = {
   providers: [
+    // Google Login
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      authorization: {
-        url: "https://accounts.google.com/o/oauth2/auth",
-        params: {
-          scope: "openid email profile",
-          prompt: "consent",
-          access_type: "offline",
-        },
-      },
     }),
 
+    // Facebook Login
     FacebookProvider({
       clientId: process.env.FACEBOOK_CLIENT_ID as string,
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET as string,
     }),
 
+    // Email & Password (Credentials)
     CredentialsProvider({
       name: "Email",
       credentials: {
@@ -38,22 +35,16 @@ export const authOptions = {
       },
       async authorize(credentials) {
         try {
-          //Login with api
-          const response = await axios.post(backendLoginUrl, {
+          const response = await axios.post(BACKEND_LOGIN_URL, {
             email: credentials?.email,
             password: credentials?.password,
           });
 
-          const dataBackend = response.data.result;
+          const { result } = response.data;
 
+          if (!result) throw new Error("Invalid email or password.");
 
-          if (dataBackend) {
-            return {
-              email: credentials?.email,
-              backendToken: dataBackend.token,
-            };
-          }
-          return null;
+          return { email: credentials?.email, backendToken: result.token };
         } catch (error) {
           throw new Error("Email not found or Password is invalid!");
         }
@@ -62,75 +53,57 @@ export const authOptions = {
   ],
 
   callbacks: {
+    // Xử lý đăng nhập bằng Google hoặc Facebook
     async signIn({ user, account, profile }) {
-      if (account?.provider === "credentials") {
-        return true;
-      }
+      if (account.provider === "credentials") return true; // Bỏ qua nếu dùng email/password
 
-      const backendProviderUrl =
-        "http://localhost:8080/api/auth/login-with-provider";
-      let newUser: LoginWithProvider;
-
-      if (account?.provider === "google") {
-        newUser = {
+      try {
+        const newUser = {
           email: user.email,
-          provider: "GOOGLE",
-          providerId: user.id,
-          name: user.name || profile.name,
-          imageUrl: profile.picture || user.image,
-        };
-      } else if (account?.provider === "facebook") {
-        newUser = {
-          email: user.email,
-          provider: "FACEBOOK",
+          provider: account.provider.toUpperCase(),
           providerId: user.id,
           name: user.name || profile.name,
           imageUrl: profile.picture?.data?.url || user.image,
         };
-      } else {
-        return false;
-      }
 
-      try {
-        console.log("Show Profile Data:", profile);
-
-        const response = await axios.post(backendProviderUrl, newUser);
-
+        const response = await axios.post(BACKEND_PROVIDER_URL, newUser);
         const backendData = response.data.result;
 
-        user.backendToken = backendData.token; // ✅ Store backend token from Spring Boot
+        if (!backendData) throw new Error("Backend authentication failed.");
+
+        user.backendToken = backendData.token; // Lưu token backend vào user
+        return true;
       } catch (error) {
-        console.error("❌Sign-in error:", error);
+        console.error("Sign-in error:", error);
         return false;
       }
-      return true;
     },
 
+    //  Tạo JWT chứa thông tin user & token
     async jwt({ token, user, account, profile }) {
       if (user) {
-        token.backendToken = user.backendToken;
-        token.email = user.email;
-        token.sub = user.id;
-        if (user.id) {
-          token.provider = account?.provider;
-          token.name = profile.name;
-          token.image = profile.picture;
-        }
+        token.backendToken = user.backendToken || token.backendToken;
+        token.email = user.email || token.email;
+        token.sub = user.id || token.sub;
+        token.provider = account?.provider || token.provider;
+        token.name = profile?.name || user.name || token.name;
+        token.image = profile?.picture || user.image || token.image;
 
-        if (!token.exp) {
-          token.exp = Math.floor(Date.now() / 1000) + 5 * 60; // ✅ Token expires in 5 minutes
-        }
+        token.exp = Math.floor(Date.now() / 1000) + 5 * 60;
       }
       return token;
     },
 
+    // Xử lý session từ JWT token
     async session({ session, token }) {
       session.backendToken = token.backendToken;
-      session.user.email = token.email;
-      session.user.name = token.name;
-      session.user.image = token.image;
-      session.user.sub = token.sub;
-      session.user.provider = token.provider;
+      session.user = {
+        email: token.email,
+        name: token.name,
+        image: token.image,
+        sub: token.sub,
+        provider: token.provider,
+      };
 
       session.exp = token.exp ? new Date(token.exp * 1000).toISOString() : null;
 
@@ -140,12 +113,14 @@ export const authOptions = {
 
   session: {
     strategy: "jwt",
-    maxAge: 5 * 60, // ✅ Session expires in 1 minutes
+    maxAge: 5 * 60, // 5 phút
   },
+
+  secret: process.env.NEXTAUTH_SECRET,
+
   httpOptions: {
     timeout: 10000,
   },
-  secret: process.env.NEXTAUTH_SECRET,
 };
 
 const handler = NextAuth(authOptions);

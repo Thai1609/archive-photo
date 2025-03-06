@@ -4,30 +4,19 @@ import { useRouter } from "next/navigation";
 import ModalForgotPassword from "@/components/ModalForgotPassword";
 import "react-toastify/dist/ReactToastify.css";
 import { signIn } from "next-auth/react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../../../lib/firebase";
 
 export default function LoginPage() {
-  //Open modal confirm email
   const [isModalOpen, setIsModalOpen] = useState(false);
   const closeModal = () => setIsModalOpen(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-
   const router = useRouter();
-
-  const handleForgotPassword = () => {
-    setIsModalOpen(true);
-  };
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
 
     try {
-      //Firebase Authentication
-      await signInWithEmailAndPassword(auth, email, password);
-
       //API Login with email password
       const response = await signIn("credentials", {
         email,
@@ -46,6 +35,9 @@ export default function LoginPage() {
     }
   };
 
+  const handleForgotPassword = () => {
+    setIsModalOpen(true);
+  };
   return (
     <>
       <form onSubmit={handleSubmit}>
@@ -83,7 +75,7 @@ export default function LoginPage() {
                 <path
                   fill="none"
                   strokeMiterlimit={10}
-                  stroke-width={40}
+                  strokeWidth={40}
                   d="M452 444H60c-22.091 0-40-17.909-40-40v-39.446l212.127-157.782c14.17-10.54 33.576-10.54 47.746 0L492 364.554V404c0 22.091-17.909 40-40 40Z"
                   data-original="#000000"
                 />
@@ -104,7 +96,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              autoComplete="current-password"
+              autoComplete="on"
               className="w-full text-gray-800 text-sm border-b border-gray-300 focus:border-blue-600 px-2 py-3 outline-none"
               placeholder="Enter password"
             />

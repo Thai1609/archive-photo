@@ -15,6 +15,7 @@ export default function RegisterPage() {
     email: "",
     name: "",
     password: "",
+    provider: "credentials",
   });
 
   const handleChange = (e: { target: { name: any; value: any } }) => {
@@ -25,27 +26,25 @@ export default function RegisterPage() {
     });
   };
 
-  const handleSubmit = async (e: { preventDefault: () => void }) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMessage("");
 
-    // Đăng ký vào database bằng api
-    await axios
-      .post(url, formData, {
+    try {
+      const response = await axios.post(url, formData, {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
-      })
-      .then((response) => {
-        setMessage(response.data?.result || "Registration successful!");
-        router.push("/auth/account/login");
-      })
-      .catch((error) => {
-        setMessage(
-          error.response?.data?.message ||
-            "Something went wrong! Please try again."
-        );
-        console.error("Error:", error.response?.data || error.message);
       });
+
+      setMessage(response.data?.result || "Registration successful!");
+      router.push("/auth/account/login");
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        "Something went wrong! Please try again.";
+      setMessage(errorMessage);
+      console.error("Error:", error.response?.data || error.message);
+    }
   };
 
   return (
@@ -97,7 +96,7 @@ export default function RegisterPage() {
                 <path
                   fill="none"
                   strokeMiterlimit={10}
-                  stroke-width={40}
+                  strokeWidth={40}
                   d="M452 444H60c-22.091 0-40-17.909-40-40v-39.446l212.127-157.782c14.17-10.54 33.576-10.54 47.746 0L492 364.554V404c0 22.091-17.909 40-40 40Z"
                   data-original="#000000"
                 />

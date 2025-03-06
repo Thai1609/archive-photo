@@ -28,26 +28,37 @@ export default function HomePage() {
   }, [session, cookieToken]);
 
   const [products, setProducts] = useState<any[]>([]);
+  const [imagePrimary, setImagePrimary] = useState<Record<number, string>>({});
 
-  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [size, setSize] = useState(10);
 
   const url = "http://localhost:8080/api/products";
-  const fetchProductData = async (pageNumber = 0) => {
+  const fetchProductData = async (sizeNumber = 10) => {
     try {
       const response = await axios.get(url, {
         // headers: {
         //   Authorization: `Bearer ${token}`,
         // },
-        params: { ...filters, pageNumber },
+        params: { ...filters, sizeNumber },
       });
       console.log("Show product: ", response.data);
 
+      setSize(response.data.size);
       setProducts(response.data.content);
-      setTotalPages(response.data.totalPages);
-      setPage(response.data.pageable.pageNumber);
+
+      // Extract primary images correctly
+      const primaryImages: Record<number, string> = {};
+      response.data.content.forEach((product: any) => {
+        const primaryImage =
+          product.images.find((image: any) => image.primary) || null;
+        primaryImages[product.id] = primaryImage
+          ? primaryImage.imageUrl
+          : "/default-image.jpg";
+      });
+
+      setImagePrimary(primaryImages);
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu từ API:", error);
     }
@@ -55,6 +66,7 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchProductData();
+    console.log("Image primary: ", imagePrimary);
   }, [filters]);
 
   const handleNextPageById = (
@@ -73,13 +85,11 @@ export default function HomePage() {
       {/* navbar */}
       <Navbar></Navbar>
       {/*content */}
-      <div className="bg-inherit font-[sans-serif] pt-[110px] max-w-7xl mx-auto p-4">
+      <div className="bg-inherit font-[sans-serif] pt-[80px] max-w-7xl mx-auto p-4">
         <div className="overflow-x-auto font-[sans-serif]">
           <div className="font-sans py-2 mx-auto lg:max-w-6xl md:max-w-4xl max-sm:max-w-md">
             <div className="p-4 mx-auto lg:max-w-7xl md:max-w-4xl sm:max-w-xl max-sm:max-w-sm">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-800 mb-6 sm:mb-10">
-                {filters.breadCrumb}
-              </h2>
+             
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 max-xl:gap-4 gap-6">
                 {products.map((product) => (
                   <div
@@ -97,7 +107,7 @@ export default function HomePage() {
                       }
                     >
                       <Image
-                        src={product?.images[0]?.imageUrl}
+                        src={imagePrimary[product.id]}
                         alt={product.name}
                         width={300} // Điều chỉnh kích thước theo nhu cầu
                         height={320}
@@ -146,24 +156,23 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
-
-            <div>
-              <button
-                onClick={() => fetchProductData(page - 1)}
-                disabled={page === 0}
-              >
-                Trước
-              </button>
-              <span>
-                Trang {page + 1} / {totalPages}
-              </span>
-              <button
-                onClick={() => fetchProductData(page + 1)}
-                disabled={page + 1 >= totalPages}
-              >
-                Tiếp
-              </button>
-            </div>
+            {size > 10 ? (
+              <div className="flex items-center justify-center space-x-4">
+                <button
+                  onClick={() => fetchProductData(size + 10)}
+                  disabled={size === 10}
+                  className={`px-4 py-2 rounded-lg text-white font-medium transition ${
+                    size === 10
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-500 hover:bg-blue-600"
+                  }`}
+                >
+                  xem thêm
+                </button>
+              </div>
+            ) : (
+              <></>
+            )}
           </div>
         </div>
       </div>

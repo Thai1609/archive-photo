@@ -48,9 +48,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [session]);
 
-  // ✅ Fetch user profile only when needed
   const fetchUserProfile = useCallback(async () => {
-    if (!token || userProfile) return; // Prevent redundant calls
+    if (!token || userProfile) return;
 
     try {
       const formInforUser = {
@@ -58,7 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         provider: providerLogin,
         providerId: providerId,
       };
-
+      console.log("data: ", formInforUser);
       const response = await axios.post(userProfileUrl, formInforUser, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -82,7 +81,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = useCallback(() => {
     setUserProfile(null);
     deleteCookie("token");
-    localStorage.setItem("user", "null");
     localStorage.removeItem("user");
     signOut({ callbackUrl: "/auth/account/login" });
   }, []);

@@ -44,8 +44,7 @@ export const ProductFilterProvider = ({
   );
 };
 
-// ✅ Ensure that `useProductFilter()` throws an error if used outside the provider
-export const useProductFilter = () => {
+ export const useProductFilter = () => {
   const context = useContext(ProductFilterContext);
   if (!context) {
     throw new Error(

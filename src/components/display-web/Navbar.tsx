@@ -104,6 +104,21 @@ export default function Navbar() {
     return [...parentPath, { id: category.id, name: category.name }];
   };
 
+  const handleBreadcrumbClick = (clickedItem: { id: string; name: string }) => {
+    if (clickedItem.id === "home") {
+      setFilters({});
+    } else {
+      setFilters((prevFilters: any) => ({
+        ...prevFilters,
+        categoryId: clickedItem.id,
+      }));
+    }
+    // Update breadcrumb to reflect navigation
+    setBreadcrumb((prev) =>
+      prev.slice(0, prev.findIndex((item) => item.id === clickedItem.id) + 1)
+    );
+  };
+
   return (
     <div className="fixed top-[75px] left-0 bg-white w-full min-h-[50px] z-40">
       <div
@@ -214,6 +229,7 @@ export default function Navbar() {
                     ? "font-bold"
                     : "hover:text-gray-700"
                 }`}
+                onClick={() => handleBreadcrumbClick(item)} // 🔥 Add click event
               >
                 {item.name}
               </li>

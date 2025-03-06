@@ -1,7 +1,8 @@
 interface LoginWithProvider {
   email: string;
   provider: string;
-  providerId: number;
+  providerId: string;
+  uid:string;
   name: string;
   imageUrl: string;
 }

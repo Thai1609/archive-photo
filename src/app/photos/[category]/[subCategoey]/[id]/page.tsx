@@ -1,16 +1,11 @@
 "use client";
-import { useAuth } from "@/context/AuthProvider";
 import axios from "axios";
-import { ref, get, set } from "firebase/database";
-import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
-import { useParams, useRouter } from "next/navigation";
+
+import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { auth, db } from "../../../../../../lib/firebase";
-import { useAuthState } from "react-firebase-hooks/auth";
 
 export default function ProductDetailPage() {
-  const params = useParams(); // ✅ Get dynamic params from the URL
-  const router = useRouter();
+  const params = useParams();
 
   // ✅ Handle the case where params might be null
   if (!params || !params.id || !params.category) {
@@ -19,7 +14,6 @@ export default function ProductDetailPage() {
   const [products, setProducts] = useState<any>(null);
   const [images, setImages] = useState<{ imageUrl: string }[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [sellerId, setSellerId] = useState("");
 
   useEffect(() => {
     if (!params?.id) return;
@@ -35,6 +29,13 @@ export default function ProductDetailPage() {
         console.log("Show product ID: ", response.data);
 
         setProducts(response.data);
+        const getPrimaryImage = (product) => {
+          const primaryImage = product.images.find(
+            (image) => image.primary === true
+          );
+          return primaryImage ? primaryImage.imageUrl : "/default-image.jpg"; // Fallback image
+        };
+        setSelectedImage(getPrimaryImage(response.data));
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu từ API:", error);
       }
@@ -44,44 +45,8 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     setImages(products?.images);
-    setSelectedImage(products?.images[0]?.imageUrl);
-    setSellerId(products?.user?.userProfile?.uid);
-    console.log("Show product image: ", products?.images);
-  }, [products, sellerId]);
-  
-  const [user] = useAuthState(auth);
-  const userProfile = useAuth();
-  const buyerId = userProfile.userProfile?.uid || "";
-
-  const createChatRoom = async (buyerId: string, sellerId: string) => {
-    const chatRoomId = [buyerId, sellerId].sort().join("_"); // Tạo ID phòng chat
-    const chatRef = ref(db, `chats/${chatRoomId}`);
-    const chatSnapshot = await get(chatRef);
-
-    if (!chatSnapshot.exists()) {
-      await set(chatRef, {
-        participants: {
-          [buyerId]: true,
-          [sellerId]: true,
-        },
-        nameSeller:products?.user?.userProfile?.fullName,
-        nameBuyer:user?.displayName,
-        createdAt: Date.now(),
-      });
-    }
-
-    return chatRoomId;
-  };
-
-  const goToChat = async () => {
-    if (!buyerId || !sellerId) {
-      console.error("🚨 Buyer hoặc Seller ID bị thiếu!");
-      return;
-    }
-    const chatRoomId = await createChatRoom(buyerId, sellerId);
-    sessionStorage.setItem("currentChatRoom", chatRoomId);
-    router.push("/photos/message/chat_room");
-  };
+    console.log("Show image select: ", selectedImage);
+  }, [products]);
 
   return (
     <div className="font-[sans-serif] p-4 bg-gray-100">
@@ -102,8 +67,7 @@ export default function ProductDetailPage() {
               )}
               <div className="bg-white p-2 w-full overflow-x-auto">
                 <div className="flex gap-4 whitespace-nowrap">
-                  {/* Dynamic Thumbnails */}
-                  {images?.map((thumb, i) => (
+                   {images?.map((thumb, i) => (
                     <img
                       key={i}
                       src={thumb.imageUrl}
@@ -203,10 +167,7 @@ export default function ProductDetailPage() {
               >
                 Liên hệ: {products?.user?.userProfile?.phoneNumber}
               </button>
-              <button
-                onClick={goToChat}
-                className="flex items-center justify-center gap-x-2 bg-purple-600 text-white font-bold p-3 rounded-lg shadow-lg hover:bg-purple-700 transition"
-              >
+              <button className="flex items-center justify-center gap-x-2 bg-purple-600 text-white font-bold p-3 rounded-lg shadow-lg hover:bg-purple-700 transition">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="w-6 h-6 text-white"

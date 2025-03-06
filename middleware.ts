@@ -5,7 +5,7 @@ import type { NextRequest } from "next/server";
 export async function middleware(req: NextRequest) {
   console.log("Middleware is running");
 
-  const { pathname } = req.nextUrl; // Get current path
+  const { pathname } = req.nextUrl;
   const secret = process.env.NEXTAUTH_SECRET;
 
   // Get tokens

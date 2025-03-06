@@ -3,7 +3,7 @@
 import Footer from "../../components/display-web/Footer";
 import Header from "../../components/display-web/Header";
 
-export default function Layout({ children }) {
+export default function LayoutPage({ children }) {
   return (
     <>
       <Header></Header>

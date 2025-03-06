@@ -176,9 +176,9 @@ export default function Header() {
                     >
                       <path
                         stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
                         d="M9 10V6a3 3 0 0 1 3-3v0a3 3 0 0 1 3 3v4m3-2 .917 11.923A1 1 0 0 1 17.92 21H6.08a1 1 0 0 1-.997-1.077L6 8h12Z"
                       />
                     </svg>
@@ -308,8 +308,8 @@ export default function Header() {
                                   >
                                     <path
                                       stroke="currentColor"
-                                      stroke-linejoin="round"
-                                      stroke-width="2"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
                                       d="M10 12v1h4v-1m4 7H6a1 1 0 0 1-1-1V9h14v9a1 1 0 0 1-1 1ZM4 5h16a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
                                     />
                                   </svg>
